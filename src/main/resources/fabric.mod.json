@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "debug",
+  "version": "${version}",
+
+  "name": "JustEnoughDebug",
+  "description": "A utility mod with more debug tools, dedicated to work in a development environment.",
+  "authors": ["Shadew"],
+  "contact": { },
+
+  "license": "Apache-2.0",
+  "icon": "assets/debug/icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "net.shadew.debug.DebugClient",
+      "net.shadew.debug.util.DebugNetworkClient",
+      "net.shadew.debug.api.render.DebugViewManager::INIT"
+    ],
+    "main": [
+      "net.shadew.debug.Debug",
+      "net.shadew.debug.util.DebugNetwork"
+    ]
+  },
+
+  "mixins": [
+    "debug.mixins.json"
+  ],
+
+  "depends": {
+    "fabricloader": ">=0.11.1",
+    "fabric": "*",
+    "minecraft": "1.16.5"
+  }
+}
