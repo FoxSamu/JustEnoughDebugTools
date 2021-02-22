@@ -48,13 +48,23 @@ publishing {
         mavenJava(MavenPublication) {
             artifact(remapJar) {
                 builtBy remapJar
+                artifactId "jedt"
             }
             artifact(sourcesJar) {
                 builtBy remapSourcesJar
+                artifactId "jedt"
             }
         }
     }
 
     repositories {
+        maven {
+            name = "ShwMaven"
+            url = uri( "http://maven.shadew.net/" )
+            credentials {
+                username = shwMavenUser
+                password = shwMavenPass
+            }
+        }
     }
 }
