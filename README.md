@@ -12,7 +12,7 @@ repositories {
 dependencies {
     // ...other dependencies...
 
-    modImplementation ("net.shadew:jedt:0.1") {
+    modImplementation("net.shadew:jedt:0.1") {
         exclude group: "net.fabricmc"
         exclude group: "net.fabricmc.fabric-api"
     }
@@ -24,8 +24,8 @@ dependencies {
 When using this mod on a dedicated Minecraft Server instance, make sure to enable the debug tools on the server. For
 security and performance reasons, the mod is disabled by default on dedicated servers.
 
-To enable the debug tools on the dedicated server, add a JSON file in your server directory, name it `debug_config.json`
-, and add the following:
+To enable the debug tools on the dedicated server, add a JSON file in your server directory, name it
+`debug_config.json`, and add the following:
 
 ```json
 {
