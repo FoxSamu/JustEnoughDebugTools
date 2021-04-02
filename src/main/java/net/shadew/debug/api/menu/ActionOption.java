@@ -1,9 +1,9 @@
 package net.shadew.debug.api.menu;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public abstract class ActionOption extends AbstractDebugOption {
-    public ActionOption(Text name) {
+    public ActionOption(Component name) {
         super(name);
     }
 

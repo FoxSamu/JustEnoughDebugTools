@@ -1,6 +1,6 @@
 package net.shadew.debug.impl.menu;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import net.shadew.debug.api.menu.BooleanOption;
@@ -9,7 +9,7 @@ import net.shadew.debug.api.menu.OptionSelectContext;
 public class DebugRenderOption extends BooleanOption {
     private final MutableBoolean value;
 
-    public DebugRenderOption(Text name, MutableBoolean value) {
+    public DebugRenderOption(Component name, MutableBoolean value) {
         super(name);
         this.value = value;
     }

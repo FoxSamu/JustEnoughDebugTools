@@ -26,7 +26,7 @@ public class Debug implements ModInitializer {
         );
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
-            if (!server.isDedicated()) {
+            if (!server.isDedicatedServer()) {
                 serverDebugStatus.resetAll();
             }
         });

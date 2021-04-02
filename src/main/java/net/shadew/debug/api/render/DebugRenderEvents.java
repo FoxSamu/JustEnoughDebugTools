@@ -1,9 +1,9 @@
 package net.shadew.debug.api.render;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.renderer.MultiBufferSource;
 
 public interface DebugRenderEvents {
     Event<DebugRenderEvents.Clear> CLEAR = EventFactory.createArrayBacked(
@@ -17,9 +17,9 @@ public interface DebugRenderEvents {
 
     Event<DebugRenderEvents.Render> RENDER = EventFactory.createArrayBacked(
         DebugRenderEvents.Render.class,
-        callbacks -> (matrices, vertexConsumers, cameraX, cameraY, cameraZ) -> {
+        callbacks -> (pose, buffSource, cameraX, cameraY, cameraZ) -> {
             for (DebugRenderEvents.Render callback : callbacks) {
-                callback.render(matrices, vertexConsumers, cameraX, cameraY, cameraZ);
+                callback.render(pose, buffSource, cameraX, cameraY, cameraZ);
             }
         }
     );
@@ -29,6 +29,6 @@ public interface DebugRenderEvents {
     }
 
     interface Render {
-        void render(MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, double cameraX, double cameraY, double cameraZ);
+        void render(PoseStack pose, MultiBufferSource.BufferSource buffSource, double cameraX, double cameraY, double cameraZ);
     }
 }

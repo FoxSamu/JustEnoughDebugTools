@@ -3,18 +3,8 @@
   "minVersion": "0.8",
   "package": "net.shadew.debug.mixin",
   "compatibilityLevel": "JAVA_8",
-  "mixins": [
-    "PathAccessor",
-    "DebugInfoSenderMixin",
-    "GameRulesIntRuleAccessor",
-    "GameRulesRuleMixin",
-    "PlayerManagerMixin"
-  ],
-  "client": [
-    "DebugRendererMixin",
-    "DebugRendererAccessor",
-    "PathfindingDebugRendererMixin"
-  ],
+  "mixins": ["DebugPacketsMixin", "GameRulesRuleMixin", "PathMixin", "PlayerManagerMixin"],
+  "client": ["DebugRendererAccessor", "DebugRendererMixin", "PathfindingDebugRendererMixin"],
   "injectors": {
     "defaultRequire": 1
   }

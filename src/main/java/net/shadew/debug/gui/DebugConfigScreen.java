@@ -1,13 +1,13 @@
 package net.shadew.debug.gui;
 
+import com.mojang.blaze3d.platform.ClipboardManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.util.Clipboard;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.math.MathHelper;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -25,18 +25,18 @@ public class DebugConfigScreen extends Screen {
 
     private final List<ConfigMenu> menus = new ArrayList<>();
     private final List<HoverText> hoverTexts = new ArrayList<>();
-    private final Clipboard clipboard = new Clipboard();
+    private final ClipboardManager clipboard = new ClipboardManager();
 
     private boolean pauses;
 
     public DebugConfigScreen() {
-        super(new TranslatableText("debug.options"));
+        super(new TranslatableComponent("debug.options"));
     }
 
     @Override
     protected void init() {
         super.init();
-        assert client != null;
+        assert minecraft != null;
 
         openMenu(DebugClient.ROOT_MENU, 0);
 
@@ -49,10 +49,10 @@ public class DebugConfigScreen extends Screen {
     }
 
     @Override
-    public void resize(MinecraftClient client, int width, int height) {
+    public void resize(Minecraft minecraft, int width, int height) {
         this.width = width;
         this.height = height;
-        this.client = client;
+        this.minecraft = minecraft;
     }
 
     private void openMenu(DebugMenu debugMenu, int index) {
@@ -91,10 +91,10 @@ public class DebugConfigScreen extends Screen {
         }
     }
 
-    private void spawnHoverText(Text text) {
-        assert client != null;
-        int mouseX = (int) (client.mouse.getX() * (double) client.getWindow().getScaledWidth() / client.getWindow().getWidth());
-        int mouseY = (int) (client.mouse.getY() * (double) client.getWindow().getScaledHeight() / client.getWindow().getHeight());
+    private void spawnHoverText(Component text) {
+        assert minecraft != null;
+        int mouseX = (int) (minecraft.mouseHandler.xpos() * (double) minecraft.getWindow().getGuiScaledWidth() / minecraft.getWindow().getWidth());
+        int mouseY = (int) (minecraft.mouseHandler.ypos() * (double) minecraft.getWindow().getGuiScaledHeight() / minecraft.getWindow().getHeight());
 
         int rx = (int) (Math.random() * 30 - 15);
         int ry = (int) (Math.random() * 30 - 15);
@@ -143,11 +143,11 @@ public class DebugConfigScreen extends Screen {
         return menus.stream().mapToInt(menu -> menu.getDisplayableWidth(partialTicks)).sum();
     }
 
-    public void receiveRender(MatrixStack matrices, int mouseX, int mouseY, float partialTicks) {
-        assert client != null;
+    public void receiveRender(PoseStack pose, int mouseX, int mouseY, float partialTicks) {
+        assert minecraft != null;
 
-        matrices.push();
-        matrices.translate(0, 0, 110);
+        pose.pushPose();
+        pose.translate(0, 0, 110);
         RenderSystem.disableDepthTest();
 
         int totalWidth = getTotalWidth(partialTicks);
@@ -160,34 +160,34 @@ public class DebugConfigScreen extends Screen {
                 int w = menu.getDisplayableWidth(partialTicks);
                 menu.setHeight(height);
                 menu.setLeftOffset(leftOffset);
-                menu.render(matrices, mouseX, mouseY, partialTicks);
+                menu.render(pose, mouseX, mouseY, partialTicks);
                 leftOffset += w;
             }
         }
 
-        matrices.translate(0, 0, 5);
+        pose.translate(0, 0, 5);
 
         for (HoverText txt : hoverTexts) {
             float alpha = txt.existTime / 30f;
-            int color = (int) (MathHelper.clamp(alpha, 0, 1) * 255) << 24;
+            int color = (int) (Mth.clamp(alpha, 0, 1) * 255) << 24;
 
             if ((color & 0xFC000000) != 0) {
-                int width = client.textRenderer.getWidth(txt.text);
-                drawHoverTextBackground(matrices, txt.x - width / 2 - 5, txt.y - 9, txt.x + width / 2 + 5, txt.y + 9, alpha);
-                drawTextWithShadow(matrices, client.textRenderer, txt.text, txt.x - width / 2, txt.y - 4, color | 0xFFFFFF);
+                int width = minecraft.font.width(txt.text);
+                drawHoverTextBackground(pose, txt.x - width / 2 - 5, txt.y - 9, txt.x + width / 2 + 5, txt.y + 9, alpha);
+                drawString(pose, minecraft.font, txt.text, txt.x - width / 2, txt.y - 4, color | 0xFFFFFF);
             }
         }
 
         RenderSystem.enableDepthTest();
-        matrices.pop();
+        pose.popPose();
     }
 
-    private void drawHoverTextBackground(MatrixStack matrices, int x1, int y1, int x2, int y2, float alpha) {
+    private void drawHoverTextBackground(PoseStack matrices, int x1, int y1, int x2, int y2, float alpha) {
         float bgAlpha = alpha / 2;
-        int color = (int) (MathHelper.clamp(alpha, 0, 1) * 255) << 24;
+        int color = (int) (Mth.clamp(alpha, 0, 1) * 255) << 24;
         int lighterColor = color | 0xAAAAAA;
         int darkerColor = color | 0x777777;
-        int bgColor = (int) (MathHelper.clamp(bgAlpha, 0, 1) * 255) << 24;
+        int bgColor = (int) (Mth.clamp(bgAlpha, 0, 1) * 255) << 24;
 
         RenderSystem.enableBlend();
         // Inner fill (transparent black)
@@ -225,7 +225,7 @@ public class DebugConfigScreen extends Screen {
         if (super.keyPressed(keyCode, scanCode, modifiers)) {
             return true;
         }
-        if (DebugClient.debugOptionsKey.matchesKey(keyCode, scanCode)) {
+        if (DebugClient.debugOptionsKey.matches(keyCode, scanCode)) {
             DebugClient.f6KeyDown = true;
             onClose();
             return true;
@@ -242,15 +242,15 @@ public class DebugConfigScreen extends Screen {
     }
 
     public static void show() {
-        MinecraftClient.getInstance().openScreen(INSTANCE);
+        Minecraft.getInstance().setScreen(INSTANCE);
     }
 
     private static class HoverText {
-        private final Text text;
+        private final Component text;
         private final int x, y;
         private int existTime = 30;
 
-        private HoverText(Text text, int x, int y) {
+        private HoverText(Component text, int x, int y) {
             this.text = text;
             this.x = x;
             this.y = y;
@@ -267,7 +267,7 @@ public class DebugConfigScreen extends Screen {
         }
 
         @Override
-        public void spawnResponse(Text response) {
+        public void spawnResponse(Component response) {
             spawnHoverText(response);
         }
 
@@ -278,14 +278,14 @@ public class DebugConfigScreen extends Screen {
 
         @Override
         public void copyToClipboard(String text) {
-            assert client != null;
-            clipboard.setClipboard(client.getWindow().getHandle(), text);
+            assert minecraft != null;
+            clipboard.setClipboard(minecraft.getWindow().getWindow(), text);
         }
 
         @Override
         public String getClipboard() {
-            assert client != null;
-            return clipboard.getClipboard(client.getWindow().getHandle(), null);
+            assert minecraft != null;
+            return clipboard.getClipboard(minecraft.getWindow().getWindow(), null);
         }
 
         @Override
@@ -304,9 +304,9 @@ public class DebugConfigScreen extends Screen {
         }
 
         @Override
-        public MinecraftClient client() {
-            assert client != null;
-            return client;
+        public Minecraft minecraft() {
+            assert minecraft != null;
+            return minecraft;
         }
 
         @Override

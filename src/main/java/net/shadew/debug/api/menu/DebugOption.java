@@ -1,18 +1,18 @@
 package net.shadew.debug.api.menu;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public interface DebugOption {
-    Text getName();
+    Component getName();
 
-    default Text getLongName() {
+    default Component getLongName() {
         return getName();
     }
 
     OptionType getType();
     void onClick(OptionSelectContext context);
 
-    default Text getDescription() {
+    default Component getDescription() {
         return null;
     }
 
@@ -20,7 +20,7 @@ public interface DebugOption {
         return false;
     }
 
-    default Text getDisplayValue() {
+    default Component getDisplayValue() {
         return null;
     }
 

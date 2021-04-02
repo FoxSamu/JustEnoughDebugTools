@@ -1,11 +1,11 @@
 package net.shadew.debug.api.menu;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class MenuOption extends AbstractDebugOption {
     private final DebugMenu menu;
 
-    public MenuOption(Text name, DebugMenu menu) {
+    public MenuOption(Component name, DebugMenu menu) {
         super(name);
         this.menu = menu;
     }

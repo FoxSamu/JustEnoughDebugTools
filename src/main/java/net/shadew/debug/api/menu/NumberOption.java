@@ -1,13 +1,13 @@
 package net.shadew.debug.api.menu;
 
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public abstract class NumberOption extends AbstractDebugOption {
-    protected static final Text DEFAULT_NUMBER = new TranslatableText("debug.options.debug.default_number");
+    protected static final String DEFAULT_NUMBER_TK = "debug.options.debug.default_number";
 
-    public NumberOption(Text name) {
+    public NumberOption(Component name) {
         super(name);
     }
 
@@ -25,10 +25,7 @@ public abstract class NumberOption extends AbstractDebugOption {
     protected abstract void mutateValue(int delta, OptionSelectContext context);
 
     @Override
-    public Text getDisplayValue() {
-        return new TranslatableText("debug.options.debug.default_number", getValue())
-                   .formatted(Formatting.YELLOW);
+    public Component getDisplayValue() {
+        return new TranslatableComponent(DEFAULT_NUMBER_TK, getValue()).withStyle(ChatFormatting.YELLOW);
     }
-
-
 }

@@ -2,17 +2,13 @@ package net.shadew.debug.util;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.GameRules;
-import org.apache.logging.log4j.Level;
+import net.minecraft.world.level.GameRules;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import net.shadew.debug.Debug;
 import net.shadew.debug.DebugClient;
 import net.shadew.debug.api.status.DebugStatusEvents;
-import net.shadew.debug.mixin.GameRulesIntRuleAccessor;
 
 public class DebugNetworkClient implements ClientModInitializer {
     @Override
@@ -22,28 +18,28 @@ public class DebugNetworkClient implements ClientModInitializer {
             int c = buf.readInt();
             for (int i = 0; i < c; i ++) {
                 int t = buf.readByte();
-                String k = buf.readString();
+                String k = buf.readUtf();
                 int v = t == 0 ? buf.readByte() : buf.readInt();
                 values.put(k, v);
             }
 
             client.execute(() -> {
-                if (client.world == null) {
+                if (client.level == null) {
                     return;
                 }
 
-                GameRules gameRules = client.world.getGameRules();
-                GameRules.accept(new GameRules.Visitor() {
+                GameRules gameRules = client.level.getGameRules();
+                GameRules.visitGameRuleTypes(new GameRules.GameRuleTypeVisitor() {
                     @Override
-                    public void visitBoolean(GameRules.Key<GameRules.BooleanRule> key, GameRules.Type<GameRules.BooleanRule> type) {
-                        String name = key.getName();
-                        gameRules.get(key).set(values.get(name) != 0, null);
+                    public void visitBoolean(GameRules.Key<GameRules.BooleanValue> key, GameRules.Type<GameRules.BooleanValue> type) {
+                        String name = key.getId();
+                        gameRules.getRule(key).set(values.get(name) != 0, null);
                     }
 
                     @Override
-                    public void visitInt(GameRules.Key<GameRules.IntRule> key, GameRules.Type<GameRules.IntRule> type) {
-                        String name = key.getName();
-                        ((GameRulesIntRuleAccessor) gameRules.get(key)).setRuleValue(values.get(name));
+                    public void visitInteger(GameRules.Key<GameRules.IntegerValue> key, GameRules.Type<GameRules.IntegerValue> type) {
+                        String name = key.getId();
+                        gameRules.getRule(key).set(values.get(name), null);
                     }
                 });
             });

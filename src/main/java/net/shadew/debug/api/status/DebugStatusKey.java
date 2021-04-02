@@ -1,10 +1,7 @@
 package net.shadew.debug.api.status;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 
 public interface DebugStatusKey<T> {
     String getName();
@@ -13,8 +10,8 @@ public interface DebugStatusKey<T> {
     boolean isAvailable(T value);
 
     T read(JsonElement element);
-    T read(PacketByteBuf buf);
-    void write(T value, PacketByteBuf buf);
+    T read(FriendlyByteBuf buf);
+    void write(T value, FriendlyByteBuf buf);
 
     String getLoggableName();
     String getLoggableValue(T value);

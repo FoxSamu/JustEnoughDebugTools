@@ -1,26 +1,25 @@
 package net.shadew.debug.api.menu;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
-import net.shadew.debug.DebugClient;
 import net.shadew.debug.api.status.DebugStatusKey;
 import net.shadew.debug.api.status.ServerDebugStatus;
 
 public abstract class AbstractDebugOption implements DebugOption {
-    private final Text name;
+    private final Component name;
     private BooleanSupplier visible = () -> true;
 
-    public AbstractDebugOption(Text name) {
+    public AbstractDebugOption(Component name) {
         this.name = name;
     }
 
     @Override
-    public Text getName() {
+    public Component getName() {
         return name;
     }
 
@@ -69,13 +68,13 @@ public abstract class AbstractDebugOption implements DebugOption {
         return this;
     }
 
-    public AbstractDebugOption onlyIf(Predicate<MinecraftClient> pred) {
-        visible = () -> pred.test(MinecraftClient.getInstance());
+    public AbstractDebugOption onlyIf(Predicate<Minecraft> pred) {
+        visible = () -> pred.test(Minecraft.getInstance());
         return this;
     }
 
-    public AbstractDebugOption hideIf(Predicate<MinecraftClient> pred) {
-        visible = () -> !pred.test(MinecraftClient.getInstance());
+    public AbstractDebugOption hideIf(Predicate<Minecraft> pred) {
+        visible = () -> !pred.test(Minecraft.getInstance());
         return this;
     }
 }

@@ -1,7 +1,7 @@
 package net.shadew.debug.api.menu;
 
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 public class DefaultMenus {
-    public static final Identifier ROOT = new Identifier("debug:root");
+    public static final ResourceLocation ROOT = new ResourceLocation("debug:root");
 }

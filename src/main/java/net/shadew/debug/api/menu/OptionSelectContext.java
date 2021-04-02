@@ -1,11 +1,11 @@
 package net.shadew.debug.api.menu;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 
 public interface OptionSelectContext {
-    void spawnResponse(Text response);
+    void spawnResponse(Component response);
     void openMenu(DebugMenu menu);
 
     void copyToClipboard(String text);
@@ -15,32 +15,32 @@ public interface OptionSelectContext {
     void closeMenu();
 
     default void spawnResponse(String key, Object... values) {
-        spawnResponse(new TranslatableText(key, values));
+        spawnResponse(new TranslatableComponent(key, values));
     }
 
     default boolean reducedDebug() {
-        return client().hasReducedDebugInfo();
+        return minecraft().showOnlyReducedInfo();
     }
 
     default boolean hasPermissionLevel(int level) {
-        MinecraftClient client = client();
+        Minecraft client = minecraft();
         assert client.player != null;
-        return client.player.hasPermissionLevel(level);
+        return client.player.hasPermissions(level);
     }
 
     default void sendCommand(String command) {
         if (!command.startsWith("/")) {
             command = "/" + command;
         }
-        MinecraftClient client = client();
+        Minecraft client = minecraft();
         assert client.player != null;
-        client.player.sendChatMessage(command);
+        client.player.chat(command);
     }
 
     // Number option context
     int delta();
 
-    MinecraftClient client();
+    Minecraft minecraft();
 
     boolean screenPauses();
     void setScreenPauses(boolean pause);

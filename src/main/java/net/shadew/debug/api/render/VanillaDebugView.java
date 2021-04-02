@@ -1,32 +1,32 @@
 package net.shadew.debug.api.render;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.debug.DebugRenderer;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 public class VanillaDebugView implements DebugView {
-    private final Function<DebugRenderer, DebugRenderer.Renderer> renderer;
+    private final Function<DebugRenderer, DebugRenderer.SimpleDebugRenderer> renderer;
     private final BooleanSupplier enabled;
 
-    public VanillaDebugView(Function<DebugRenderer, DebugRenderer.Renderer> renderer, BooleanSupplier enabled) {
+    public VanillaDebugView(Function<DebugRenderer, DebugRenderer.SimpleDebugRenderer> renderer, BooleanSupplier enabled) {
         this.renderer = renderer;
         this.enabled = enabled;
     }
 
     @Override
     public void clear() {
-        renderer.apply(MinecraftClient.getInstance().debugRenderer)
+        renderer.apply(Minecraft.getInstance().debugRenderer)
                 .clear();
     }
 
     @Override
-    public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, double cameraX, double cameraY, double cameraZ) {
-        renderer.apply(MinecraftClient.getInstance().debugRenderer)
-                .render(matrices, vertexConsumers, cameraX, cameraY, cameraZ);
+    public void render(PoseStack pose, MultiBufferSource buffSource, double cameraX, double cameraY, double cameraZ) {
+        renderer.apply(Minecraft.getInstance().debugRenderer)
+                .render(pose, buffSource, cameraX, cameraY, cameraZ);
     }
 
     @Override

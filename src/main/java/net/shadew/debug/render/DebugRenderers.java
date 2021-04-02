@@ -1,9 +1,8 @@
 package net.shadew.debug.render;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.MultiBufferSource;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import net.shadew.debug.api.render.DebugRenderEvents;
@@ -18,18 +17,18 @@ public class DebugRenderers {
     public static final MutableBoolean FLUID_LEVELS_SHOWN = new MutableBoolean(false);
     public static final MutableBoolean COLLISIONS_SHOWN = new MutableBoolean(false);
 
-    public static final DebugView PATHFINDING = register(new VanillaDebugView(r -> r.pathfindingDebugRenderer, PATHFINDING_ENABLED::booleanValue));
-    public static final DebugView NEIGHBOR_UPDATES = register(new VanillaDebugView(r -> r.neighborUpdateDebugRenderer, NEIGHBOR_UPDATES_SHOWN::booleanValue));
-    public static final DebugView HEIGHTMAPS = register(new VanillaDebugView(r -> r.heightmapDebugRenderer, HEIGHTMAPS_SHOWN::booleanValue));
-    public static final DebugView FLUID_LEVELS = register(new FluidsDebugView(MinecraftClient.getInstance()));
-    public static final DebugView COLLISIONS = register(new VanillaDebugView(r -> r.collisionDebugRenderer, COLLISIONS_SHOWN::booleanValue));
+    public static final PathfinderDebugView PATHFINDING = register(new PathfinderDebugView(PATHFINDING_ENABLED));
+    public static final DebugView NEIGHBOR_UPDATES = register(new VanillaDebugView(r -> r.neighborsUpdateRenderer, NEIGHBOR_UPDATES_SHOWN::booleanValue));
+    public static final DebugView HEIGHTMAPS = register(new VanillaDebugView(r -> r.heightMapRenderer, HEIGHTMAPS_SHOWN::booleanValue));
+    public static final DebugView FLUID_LEVELS = register(new FluidsDebugView(Minecraft.getInstance()));
+    public static final DebugView COLLISIONS = register(new VanillaDebugView(r -> r.collisionBoxRenderer, COLLISIONS_SHOWN::booleanValue));
 
-    public static void reset() {
+    public static void clear() {
         DebugRenderEvents.CLEAR.invoker().clear();
     }
 
-    public static void render(MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, double cameraX, double cameraY, double cameraZ) {
-        DebugRenderEvents.RENDER.invoker().render(matrices, vertexConsumers, cameraX, cameraY, cameraZ);
+    public static void render(PoseStack pose, MultiBufferSource.BufferSource buffSource, double cameraX, double cameraY, double cameraZ) {
+        DebugRenderEvents.RENDER.invoker().render(pose, buffSource, cameraX, cameraY, cameraZ);
     }
 
     private static <V extends DebugView> V register(V view) {

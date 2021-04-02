@@ -3,7 +3,7 @@
   "id": "debug",
   "version": "${version}",
 
-  "name": "JustEnoughDebug",
+  "name": "Just Enough Debug Tools",
   "description": "A utility mod with more debug tools, dedicated to work in a development environment.",
   "authors": ["Shadew"],
   "contact": { },
@@ -29,8 +29,8 @@
   ],
 
   "depends": {
-    "fabricloader": ">=0.11.1",
+    "fabricloader": ">=0.11.3",
     "fabric": "*",
-    "minecraft": "1.16.5"
+    "minecraft": "1.17-alpha.21.13.a"
   }
 }

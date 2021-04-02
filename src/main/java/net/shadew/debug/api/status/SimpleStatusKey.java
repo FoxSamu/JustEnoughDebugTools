@@ -2,8 +2,7 @@ package net.shadew.debug.api.status;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 
 public class SimpleStatusKey extends AbstractStatusKey<Boolean> {
     protected SimpleStatusKey(String name, String loggableName) {
@@ -27,12 +26,12 @@ public class SimpleStatusKey extends AbstractStatusKey<Boolean> {
     }
 
     @Override
-    public Boolean read(PacketByteBuf buf) {
+    public Boolean read(FriendlyByteBuf buf) {
         return buf.readBoolean();
     }
 
     @Override
-    public void write(Boolean value, PacketByteBuf buf) {
+    public void write(Boolean value, FriendlyByteBuf buf) {
         buf.writeBoolean(value);
     }
 

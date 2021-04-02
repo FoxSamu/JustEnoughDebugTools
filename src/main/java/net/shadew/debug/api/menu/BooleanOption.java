@@ -1,9 +1,9 @@
 package net.shadew.debug.api.menu;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public abstract class BooleanOption extends AbstractDebugOption {
-    public BooleanOption(Text name) {
+    public BooleanOption(Component name) {
         super(name);
     }
 

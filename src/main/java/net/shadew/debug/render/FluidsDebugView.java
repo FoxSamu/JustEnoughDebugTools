@@ -1,26 +1,28 @@
 package net.shadew.debug.render;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Matrix4f;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.*;
-import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Matrix4f;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.WorldView;
-import org.lwjgl.opengl.GL11;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.debug.DebugRenderer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.phys.Vec3;
 
 import net.shadew.debug.api.render.DebugView;
 
 @Environment(EnvType.CLIENT)
 public class FluidsDebugView implements DebugView {
-    private final MinecraftClient client;
+    private final Minecraft client;
 
-    public FluidsDebugView(MinecraftClient client) {
+    public FluidsDebugView(Minecraft client) {
         this.client = client;
     }
 
@@ -30,41 +32,40 @@ public class FluidsDebugView implements DebugView {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, double cameraX, double cameraY, double cameraZ) {
+    public void render(PoseStack pose, MultiBufferSource buffSrc, double cameraX, double cameraY, double cameraZ) {
         assert client.player != null;
 
-        BlockPos playerPos = client.player.getBlockPos();
-        WorldView world = client.player.world;
+        BlockPos playerPos = client.player.blockPosition();
+        LevelAccessor world = client.player.level;
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.color4f(0, 1, 0, 0.75f);
+        RenderSystem.setShaderColor(0, 1, 0, 0.75f);
         RenderSystem.disableTexture();
         RenderSystem.lineWidth(1);
-        VertexConsumer buff = vertexConsumers.getBuffer(RenderLayer.getLines());
+        VertexConsumer buff = buffSrc.getBuffer(RenderType.lines());
 
-        matrices.push();
-        matrices.translate(-cameraX, -cameraY, -cameraZ);
+        pose.pushPose();
+        pose.translate(-cameraX, -cameraY, -cameraZ);
 
-        Matrix4f matrix = matrices.peek().getModel();
-        for (BlockPos pos : BlockPos.iterate(playerPos.add(-8, -8, -8), playerPos.add(8, 8, 8))) {
+        Matrix4f matrix = pose.last().pose();
+        for (BlockPos pos : BlockPos.betweenClosed(playerPos.offset(-8, -8, -8), playerPos.offset(8, 8, 8))) {
             FluidState fluid = world.getFluidState(pos);
-            if (fluid.getLevel() <= 0) continue;
+            if (fluid.getAmount() <= 0) continue;
             float fheight = fluid.getHeight(world, pos);
 
             double height = pos.getY() + fheight;
 
-            WorldRenderer.drawBox(
-                matrices, buff,
+            LevelRenderer.renderLineBox(
+                pose, buff,
                 pos.getX(), pos.getY(), pos.getZ(),
                 pos.getX() + 1, height + 0.01, pos.getZ() + 1,
                 1, 1, 1, 1
             );
 
-            Vec3d flow = fluid.getVelocity(world, pos);
+            Vec3 flow = fluid.getFlow(world, pos);
             if (fheight < 0.4) {
-                flow = flow.multiply(fheight);
+                flow = flow.scale(fheight);
             }
 
             float x1 = pos.getX() + 0.5f;
@@ -74,17 +75,17 @@ public class FluidsDebugView implements DebugView {
             float y2 = y1;
             float z2 = z1 + (float) flow.z * 0.8f;
 
-            buff.vertex(matrix, x1, y1, z1).color(0f, 0f, 1f, 1f).next();
-            buff.vertex(matrix, x2, y2, z2).color(0f, 0f, 1f, 1f).next();
+            buff.vertex(matrix, x1, y1, z1).color(0f, 0f, 1f, 1f).endVertex();
+            buff.vertex(matrix, x2, y2, z2).color(0f, 0f, 1f, 1f).endVertex();
         }
 
-        matrices.pop();
+        pose.popPose();
 
-        for (BlockPos pos : BlockPos.iterate(playerPos.add(-8, -8, -8), playerPos.add(8, 8, 8))) {
+        for (BlockPos pos : BlockPos.betweenClosed(playerPos.offset(-8, -8, -8), playerPos.offset(8, 8, 8))) {
             FluidState fluid = world.getFluidState(pos);
-            if (fluid.getLevel() <= 0) continue;
-            DebugRenderer.drawString(
-                String.valueOf(fluid.getLevel()),
+            if (fluid.getAmount() <= 0) continue;
+            DebugRenderer.renderFloatingText(
+                String.valueOf(fluid.getAmount()),
                 pos.getX() + 0.5, pos.getY() + fluid.getHeight(world, pos), pos.getZ() + 0.5,
                 0xFF000000
             );

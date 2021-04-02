@@ -1,6 +1,6 @@
 package net.shadew.debug.impl.menu;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,15 +10,15 @@ import net.shadew.debug.api.menu.DebugMenu;
 import net.shadew.debug.api.menu.DebugOption;
 
 public class DebugMenuImpl implements DebugMenu {
-    private final Text header;
+    private final Component header;
     private final List<DebugOption> options = new ArrayList<>();
 
-    public DebugMenuImpl(Text header) {
+    public DebugMenuImpl(Component header) {
         this.header = header;
     }
 
     @Override
-    public Text getHeader() {
+    public Component getHeader() {
         return header;
     }
 

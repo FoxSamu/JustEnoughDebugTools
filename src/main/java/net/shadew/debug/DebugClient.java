@@ -7,8 +7,8 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.options.KeyBinding;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
@@ -27,7 +27,7 @@ public class DebugClient implements ClientModInitializer {
     public static final DebugMenuManagerImpl MENU_MANAGER = new DebugMenuManagerImpl();
     public static final DebugMenu ROOT_MENU = MENU_MANAGER.getMenu("debug:root");
 
-    public static KeyBinding debugOptionsKey;
+    public static KeyMapping debugOptionsKey;
     public static boolean f6KeyDown = true;
 
     public static ServerDebugStatusImpl serverDebugStatus;
@@ -47,23 +47,23 @@ public class DebugClient implements ClientModInitializer {
         );
 
         KeyBindingHelper.registerKeyBinding(
-            debugOptionsKey = new KeyBinding("key.debug.options", GLFW.GLFW_KEY_F6, "key.categories.misc")
+            debugOptionsKey = new KeyMapping("key.debug.options", GLFW.GLFW_KEY_F6, "key.categories.misc")
         );
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             DebugConfigScreen.INSTANCE.receiveTick();
-            if (debugOptionsKey.isPressed() && !f6KeyDown) {
+            if (debugOptionsKey.isDown() && !f6KeyDown) {
                 f6KeyDown = true;
                 DebugConfigScreen.show();
-            } else if(!debugOptionsKey.isPressed()) {
+            } else if (!debugOptionsKey.isDown()) {
                 f6KeyDown = false;
             }
         });
 
         HudRenderCallback.EVENT.register((matrixStack, tickDelta) -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            int mx = (int)(client.mouse.getX() * (double)client.getWindow().getScaledWidth() / client.getWindow().getWidth());
-            int my = (int)(client.mouse.getY() * (double)client.getWindow().getScaledHeight() / client.getWindow().getHeight());
+            Minecraft client = Minecraft.getInstance();
+            int mx = (int) (client.mouseHandler.xpos() * (double) client.getWindow().getGuiScaledWidth() / client.getWindow().getWidth());
+            int my = (int) (client.mouseHandler.ypos() * (double) client.getWindow().getGuiScaledHeight() / client.getWindow().getHeight());
             DebugConfigScreen.INSTANCE.receiveRender(matrixStack, mx, my, tickDelta);
         });
     }

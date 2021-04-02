@@ -1,43 +1,42 @@
 package net.shadew.debug.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.DrawableHelper;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.sound.PositionedSoundInstance;
-import net.minecraft.client.texture.TextureManager;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.LiteralText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-public class ConfigMenu extends DrawableHelper implements Element, Drawable {
-    private static final Identifier TEXTURE = new Identifier("debug:textures/gui/options.png");
+public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener {
+    private static final ResourceLocation TEXTURE = new ResourceLocation("debug:textures/gui/options.png");
     public static final int MENU_WIDTH = 128;
     public static final int ITEM_HEIGHT = 20;
     private static final int TOP_PADDING = ITEM_HEIGHT / 2 - 4;
     private static final int SIDE_PADDING = 6;
     private static final int FOREGROUND = 0xFFFFFF;
 
-    private final Text title;
+    private final Component title;
     private Runnable closeHandler;
 
     private final List<Entry> entries = new ArrayList<>();
-    private final TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-    private final TextureManager textures = MinecraftClient.getInstance().getTextureManager();
+    private final Font textRenderer = Minecraft.getInstance().font;
+    private final TextureManager textures = Minecraft.getInstance().getTextureManager();
     private boolean visible;
     private boolean closed = true;
     private ConfigMenu swapPartner;
@@ -50,12 +49,12 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
     private double scroll;
 
     @Deprecated
-    public ConfigMenu(Text title, Runnable closeHandler) {
+    public ConfigMenu(Component title, Runnable closeHandler) {
         this.title = title;
         this.closeHandler = closeHandler;
     }
 
-    public ConfigMenu(Text title) {
+    public ConfigMenu(Component title) {
         this.title = title;
     }
 
@@ -133,13 +132,13 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
             return MENU_WIDTH;
         }
 
-        float visibility = MathHelper.lerp(partialTicks, lastVisibility, this.visibility);
+        float visibility = Mth.lerp(partialTicks, lastVisibility, this.visibility);
         float widthf = 1;
 
         if (visibility < 1) {
             if (visibility < 0.5) {
                 float slideProgress = visibility * 2;
-                widthf = -MathHelper.cos(slideProgress * (float) Math.PI) * 0.5f + 0.5f;
+                widthf = -Mth.cos(slideProgress * (float) Math.PI) * 0.5f + 0.5f;
             }
         }
 
@@ -189,9 +188,9 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
     }
 
     private void playClickSound(float pitch) {
-        MinecraftClient.getInstance()
-                       .getSoundManager()
-                       .play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, pitch));
+        Minecraft.getInstance()
+                 .getSoundManager()
+                 .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, pitch));
     }
 
     @Override
@@ -268,7 +267,7 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
             }
         }
 
-        scroll = MathHelper.clamp(scroll, 0, 1);
+        scroll = Mth.clamp(scroll, 0, 1);
 
         return false;
     }
@@ -280,14 +279,14 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
 
     @Override
     @SuppressWarnings("deprecation")
-    public void render(MatrixStack matrices, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack matrices, int mouseX, int mouseY, float partialTicks) {
         if (swapManager != null) {
             swapManager.render(matrices, mouseX, mouseY, partialTicks);
             return;
         }
 
         RenderSystem.enableBlend();
-        float visibility = MathHelper.lerp(partialTicks, lastVisibility, this.visibility);
+        float visibility = Mth.lerp(partialTicks, lastVisibility, this.visibility);
 
         if (visibility <= 0) {
             return;
@@ -302,10 +301,10 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
                 float slideProgress = visibility * 2;
                 itemOpacity = 0;
                 interactive = false;
-                widthf = -MathHelper.cos(slideProgress * (float) Math.PI) * 0.5f + 0.5f;
+                widthf = -Mth.cos(slideProgress * (float) Math.PI) * 0.5f + 0.5f;
             } else {
                 float slideProgress = visibility * 2 - 1;
-                itemOpacity = -MathHelper.cos(slideProgress * (float) Math.PI) * 0.5f + 0.5f;
+                itemOpacity = -Mth.cos(slideProgress * (float) Math.PI) * 0.5f + 0.5f;
                 interactive = false;
             }
         }
@@ -314,11 +313,11 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
         int alphaFactor = (int) (itemOpacity * 255) << 24;
 
         if (widthf > 0) {
-            textures.bindTexture(TEXTURE);
+            RenderSystem.setShaderTexture(0, TEXTURE);
             int h = height;
 
             while (h > 0) {
-                drawTexture(matrices, left, height - h, MENU_WIDTH - width, 0, width, Math.min(height, h));
+                blit(matrices, left, height - h, MENU_WIDTH - width, 0, width, Math.min(height, h));
                 h -= height;
             }
         }
@@ -343,25 +342,25 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
                 int visibleHeight = Math.min(ITEM_HEIGHT, bottomY - ITEM_HEIGHT / 2);
 
                 if (visibleHeight > 0 && (y >= 0 || y <= height)) {
-                    RenderSystem.color4f(1, 1, 1, itemOpacity);
-                    textures.bindTexture(TEXTURE);
+                    RenderSystem.setShaderColor(1, 1, 1, itemOpacity);
+                    RenderSystem.setShaderTexture(0, TEXTURE);
                     int uOffset = ITEM_HEIGHT - visibleHeight;
                     int topY = bottomY - visibleHeight;
 
                     if (interactive && mouseX >= x1 && mouseX < x2 && mouseY >= y1 && mouseY < y2) {
-                        drawTexture(matrices, left, topY, MENU_WIDTH, ITEM_HEIGHT * (3 + entry.type() * 2) + uOffset, width, visibleHeight);
+                        blit(matrices, left, topY, MENU_WIDTH, ITEM_HEIGHT * (3 + entry.type() * 2) + uOffset, width, visibleHeight);
                     } else {
-                        drawTexture(matrices, left, topY, MENU_WIDTH, ITEM_HEIGHT * (2 + entry.type() * 2) + uOffset, width, visibleHeight);
+                        blit(matrices, left, topY, MENU_WIDTH, ITEM_HEIGHT * (2 + entry.type() * 2) + uOffset, width, visibleHeight);
                     }
-                    RenderSystem.color4f(1, 1, 1, 1);
+                    RenderSystem.setShaderColor(1, 1, 1, 1);
 
                     RenderSystem.enableBlend();
-                    drawTextWithShadow(matrices, textRenderer, entry.text, SIDE_PADDING + left, TOP_PADDING + y, tc);
+                    drawString(matrices, textRenderer, entry.text, SIDE_PADDING + left, TOP_PADDING + y, tc);
 
-                    Text extra = entry.extraInfo();
+                    Component extra = entry.extraInfo();
                     if (extra != null) {
-                        int wdt = textRenderer.getWidth(extra);
-                        textRenderer.drawWithShadow(matrices, extra, x2 - ITEM_HEIGHT - wdt, TOP_PADDING + y, tc);
+                        int wdt = textRenderer.width(extra);
+                        textRenderer.drawShadow(matrices, extra, x2 - ITEM_HEIGHT - wdt, TOP_PADDING + y, tc);
                     }
                 }
 
@@ -369,13 +368,13 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
             }
         }
 
-        matrices.push();
+        matrices.pushPose();
         matrices.translate(0, 0, 10);
 
         if (widthf > 0) {
 
-            textures.bindTexture(TEXTURE);
-            drawTexture(matrices, left, 0, 2 * MENU_WIDTH - width, 0, width, ITEM_HEIGHT);
+            RenderSystem.setShaderTexture(0, TEXTURE);
+            blit(matrices, left, 0, 2 * MENU_WIDTH - width, 0, width, ITEM_HEIGHT);
 
             int cbWidth = Math.min(ITEM_HEIGHT, width);
 
@@ -385,8 +384,8 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
             int y2 = ITEM_HEIGHT;
 
             if (interactive && mouseX >= x1 && mouseX < x2 && mouseY >= y1 && mouseY < y2) {
-                textures.bindTexture(TEXTURE);
-                drawTexture(matrices, x1, 0, 2 * MENU_WIDTH - cbWidth, ITEM_HEIGHT, cbWidth, ITEM_HEIGHT);
+                RenderSystem.setShaderTexture(0, TEXTURE);
+                blit(matrices, x1, 0, 2 * MENU_WIDTH - cbWidth, ITEM_HEIGHT, cbWidth, ITEM_HEIGHT);
             }
         }
 
@@ -395,35 +394,35 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
             textRenderer.draw(matrices, title, SIDE_PADDING + left, TOP_PADDING, alphaFactor);
         }
 
-        matrices.pop();
+        matrices.popPose();
     }
 
     public static class Entry implements Comparable<Entry> {
-        private Text text;
+        private Component text;
         private final int textColor;
         private final Runnable clickHandler;
-        protected Supplier<Text> extraInfo = () -> null;
+        protected Supplier<Component> extraInfo = () -> null;
 
-        public Entry(Text text, Runnable clickHandler, int textColor) {
+        public Entry(Component text, Runnable clickHandler, int textColor) {
             this.text = text;
             this.clickHandler = clickHandler;
             this.textColor = textColor == -1 ? FOREGROUND : textColor & 0xFFFFFF;
         }
 
-        public Entry(Text text, Runnable clickHandler) {
+        public Entry(Component text, Runnable clickHandler) {
             this(text, clickHandler, FOREGROUND);
         }
 
-        public Entry(Text text, Runnable clickHandler, Supplier<Text> extraInfo) {
+        public Entry(Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
             this(text, clickHandler, FOREGROUND);
             this.extraInfo = extraInfo;
         }
 
-        public void setText(Text text) {
+        public void setText(Component text) {
             this.text = text;
         }
 
-        public Text getText() {
+        public Component getText() {
             return text;
         }
 
@@ -435,7 +434,7 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
             return false;
         }
 
-        protected Text extraInfo() {
+        protected Component extraInfo() {
             return extraInfo.get();
         }
 
@@ -449,15 +448,15 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
     }
 
     public static class MenuEntry extends Entry {
-        public MenuEntry(Text text, Runnable clickHandler, int textColor) {
+        public MenuEntry(Component text, Runnable clickHandler, int textColor) {
             super(text, clickHandler, textColor);
         }
 
-        public MenuEntry(Text text, Runnable clickHandler) {
+        public MenuEntry(Component text, Runnable clickHandler) {
             super(text, clickHandler);
         }
 
-        public MenuEntry(Text text, Runnable clickHandler, Supplier<Text> extraInfo) {
+        public MenuEntry(Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
             super(text, clickHandler);
             this.extraInfo = extraInfo;
         }
@@ -479,17 +478,17 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
     public static class CheckableEntry extends Entry {
         private final BooleanSupplier hasCheck;
 
-        public CheckableEntry(Text text, Runnable clickHandler, BooleanSupplier hasCheck, int textColor) {
+        public CheckableEntry(Component text, Runnable clickHandler, BooleanSupplier hasCheck, int textColor) {
             super(text, clickHandler, textColor);
             this.hasCheck = hasCheck;
         }
 
-        public CheckableEntry(Text text, Runnable clickHandler, BooleanSupplier hasCheck) {
+        public CheckableEntry(Component text, Runnable clickHandler, BooleanSupplier hasCheck) {
             super(text, clickHandler);
             this.hasCheck = hasCheck;
         }
 
-        public CheckableEntry(Text text, Runnable clickHandler, BooleanSupplier hasCheck, Supplier<Text> extraInfo) {
+        public CheckableEntry(Component text, Runnable clickHandler, BooleanSupplier hasCheck, Supplier<Component> extraInfo) {
             super(text, clickHandler);
             this.hasCheck = hasCheck;
             this.extraInfo = extraInfo;
@@ -505,28 +504,28 @@ public class ConfigMenu extends DrawableHelper implements Element, Drawable {
         private final Runnable upperClickHandler;
         private final Runnable lowerClickHandler;
 
-        public SpinnerEntry(Text text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value, int textColor) {
+        public SpinnerEntry(Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value, int textColor) {
             super(text, clickHandler, textColor);
-            this.extraInfo = () -> new LiteralText(value.getAsInt() + "");
+            this.extraInfo = () -> new TextComponent(value.getAsInt() + "");
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;
         }
 
-        public SpinnerEntry(Text text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value) {
+        public SpinnerEntry(Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value) {
             super(text, clickHandler);
-            this.extraInfo = () -> new LiteralText(value.getAsInt() + "");
+            this.extraInfo = () -> new TextComponent(value.getAsInt() + "");
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;
         }
 
-        public SpinnerEntry(Text text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Text> value, int textColor) {
+        public SpinnerEntry(Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value, int textColor) {
             super(text, clickHandler, textColor);
             this.extraInfo = value;
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;
         }
 
-        public SpinnerEntry(Text text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Text> value) {
+        public SpinnerEntry(Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value) {
             super(text, clickHandler);
             this.extraInfo = value;
             this.upperClickHandler = upperClickHandler;

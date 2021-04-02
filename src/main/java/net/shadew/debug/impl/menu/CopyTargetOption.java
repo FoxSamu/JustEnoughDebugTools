@@ -1,20 +1,20 @@
 package net.shadew.debug.impl.menu;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.command.argument.BlockArgumentParser;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.commands.arguments.blocks.BlockStateParser;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.registry.Registry;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.Locale;
 
@@ -22,60 +22,60 @@ import net.shadew.debug.api.menu.ActionOption;
 import net.shadew.debug.api.menu.OptionSelectContext;
 
 public class CopyTargetOption extends ActionOption {
-    public CopyTargetOption(Text name) {
+    public CopyTargetOption(Component name) {
         super(name);
     }
 
     @Override
     public void onClick(OptionSelectContext context) {
-        copyLookAt(context.client(), context, true, !context.client().hasReducedDebugInfo());
+        copyLookAt(context.minecraft(), context, true, !context.minecraft().showOnlyReducedInfo());
     }
 
-    private void copyLookAt(MinecraftClient client, OptionSelectContext context, boolean copyNbt, boolean server) {
+    private void copyLookAt(Minecraft client, OptionSelectContext context, boolean copyNbt, boolean server) {
         assert client.player != null;
-        assert client.world != null;
+        assert client.level != null;
 
-        HitResult target = client.crosshairTarget;
+        HitResult target = client.hitResult;
         if (target != null) {
-            switch(target.getType()) {
+            switch (target.getType()) {
                 case BLOCK:
-                    BlockPos pos = ((BlockHitResult)target).getBlockPos();
-                    BlockState state = client.world.getBlockState(pos);
+                    BlockPos pos = ((BlockHitResult) target).getBlockPos();
+                    BlockState state = client.level.getBlockState(pos);
 
                     if (copyNbt) {
                         if (server) {
-                            client.player.networkHandler.getDataQueryHandler().queryBlockNbt(pos, nbt -> {
+                            client.player.connection.getDebugQueryHandler().queryBlockEntityTag(pos, nbt -> {
                                 copyBlock(context, state, pos, nbt);
-                                context.spawnResponse(new TranslatableText("debug.options.debug.copy_targeted.response_server_block"));
+                                context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_server_block"));
                             });
                         } else {
-                            BlockEntity be = client.world.getBlockEntity(pos);
-                            CompoundTag nbt = be != null ? be.toTag(new CompoundTag()) : null;
+                            BlockEntity be = client.level.getBlockEntity(pos);
+                            CompoundTag nbt = be != null ? be.save(new CompoundTag()) : null;
                             copyBlock(context, state, pos, nbt);
-                            context.spawnResponse(new TranslatableText("debug.options.debug.copy_targeted.response_client_block"));
+                            context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_block"));
                         }
                     } else {
                         copyBlock(context, state, pos, null);
-                        context.spawnResponse(new TranslatableText("debug.options.debug.copy_targeted.response_client_state"));
+                        context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_state"));
                     }
                     break;
                 case ENTITY:
-                    Entity entity = ((EntityHitResult)target).getEntity();
-                    Identifier id = Registry.ENTITY_TYPE.getId(entity.getType());
+                    Entity entity = ((EntityHitResult) target).getEntity();
+                    ResourceLocation id = Registry.ENTITY_TYPE.getKey(entity.getType());
                     if (copyNbt) {
                         if (server) {
-                            client.player.networkHandler.getDataQueryHandler().queryEntityNbt(entity.getEntityId(), nbt -> {
-                                copyEntity(context, id, entity.getPos(), nbt);
-                                context.spawnResponse(new TranslatableText("debug.options.debug.copy_targeted.response_server_entity"));
+                            client.player.connection.getDebugQueryHandler().queryEntityTag(entity.getId(), nbt -> {
+                                copyEntity(context, id, entity.position(), nbt);
+                                context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_server_entity"));
                             });
                         } else {
-                            CompoundTag nbt = entity.toTag(new CompoundTag());
-                            copyEntity(context, id, entity.getPos(), nbt);
-                            context.spawnResponse(new TranslatableText("debug.options.debug.copy_targeted.response_client_entity"));
+                            CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
+                            copyEntity(context, id, entity.position(), nbt);
+                            context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_entity"));
                         }
                     } else {
-                        copyEntity(context, id, entity.getPos(), null);
-                        context.spawnResponse(new TranslatableText("debug.options.debug.copy_targeted.response_client_location"));
+                        copyEntity(context, id, entity.position(), null);
+                        context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_location"));
                     }
             }
 
@@ -90,7 +90,7 @@ public class CopyTargetOption extends ActionOption {
             tag.remove("id");
         }
 
-        StringBuilder builder = new StringBuilder(BlockArgumentParser.stringifyBlockState(state));
+        StringBuilder builder = new StringBuilder(BlockStateParser.serialize(state));
         if (tag != null) {
             builder.append(tag);
         }
@@ -99,13 +99,13 @@ public class CopyTargetOption extends ActionOption {
         context.copyToClipboard(str);
     }
 
-    protected void copyEntity(OptionSelectContext context, Identifier id, Vec3d pos, CompoundTag nbt) {
+    protected void copyEntity(OptionSelectContext context, ResourceLocation id, Vec3 pos, CompoundTag nbt) {
         String str;
         if (nbt != null) {
             nbt.remove("UUID");
             nbt.remove("Pos");
             nbt.remove("Dimension");
-            String nbtStr = nbt.toText().getString();
+            String nbtStr = nbt.toString();
             str = String.format(Locale.ROOT, "/summon %s %.2f %.2f %.2f %s", id.toString(), pos.x, pos.y, pos.z, nbtStr);
         } else {
             str = String.format(Locale.ROOT, "/summon %s %.2f %.2f %.2f", id.toString(), pos.x, pos.y, pos.z);

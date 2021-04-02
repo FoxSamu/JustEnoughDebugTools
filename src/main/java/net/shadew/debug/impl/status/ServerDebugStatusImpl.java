@@ -5,7 +5,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
@@ -160,7 +160,7 @@ public class ServerDebugStatusImpl implements ServerDebugStatus.Mutable {
         }
     }
 
-    public void serialize(PacketByteBuf buf) {
+    public void serialize(FriendlyByteBuf buf) {
         buf.writeBoolean(isDebugAvailable());
         if (isDebugAvailable()) {
             buf.writeInt(keys.size());
@@ -170,26 +170,26 @@ public class ServerDebugStatusImpl implements ServerDebugStatus.Mutable {
         }
     }
 
-    public void deserialize(PacketByteBuf buf) {
+    public void deserialize(FriendlyByteBuf buf) {
         synchronized (this) {
             setDebugAvailable(buf.readBoolean());
             if (isDebugAvailable()) {
                 int count = buf.readInt();
                 while (count > 0) {
                     readKey(buf);
-                    count --;
+                    count--;
                 }
             }
         }
     }
 
-    private <T> void writeKey(PacketByteBuf buf, DebugStatusKey<T> key) {
-        buf.writeString(key.getName(), Short.MAX_VALUE);
+    private <T> void writeKey(FriendlyByteBuf buf, DebugStatusKey<T> key) {
+        buf.writeUtf(key.getName(), Short.MAX_VALUE);
         key.write(getStatus(key), buf);
     }
 
-    private void readKey(PacketByteBuf buf) {
-        String name = buf.readString();
+    private void readKey(FriendlyByteBuf buf) {
+        String name = buf.readUtf();
         DebugStatusKey<?> key = keysByName.get(name);
         if (key == null) {
             throw new IllegalStateException("Received unknown status key: " + name);
@@ -197,7 +197,7 @@ public class ServerDebugStatusImpl implements ServerDebugStatus.Mutable {
         readKey(buf, key);
     }
 
-    private <T> void readKey(PacketByteBuf buf, DebugStatusKey<T> key) {
+    private <T> void readKey(FriendlyByteBuf buf, DebugStatusKey<T> key) {
         setStatus(key, key.read(buf));
     }
 

@@ -1,13 +1,13 @@
 package net.shadew.debug;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Util;
-import net.minecraft.world.GameRules;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.GameRules;
 
 import java.util.Locale;
 
@@ -20,7 +20,7 @@ import net.shadew.debug.impl.menu.*;
 import net.shadew.debug.render.DebugRenderers;
 
 public class DefaultMenuInitializer implements DebugMenuInitializer {
-    private final MinecraftClient client = MinecraftClient.getInstance();
+    private final Minecraft minecraft = Minecraft.getInstance();
 
     @Override
     public void onInitializeDebugMenu(DebugMenu root, DebugMenuManager factory, ServerDebugStatus debugStatus) {
@@ -47,42 +47,42 @@ public class DefaultMenuInitializer implements DebugMenuInitializer {
         commands.addOption(new MenuOption(tickSpeedCommands));
         commands.addOption(new MenuOption(miscCommands));
 
-        Text timeResponse = text("debug:commands.time.response");
-        timeCommands.addOption(new BooleanGameruleOption(text("debug:commands.time.enabled"), GameRules.DO_DAYLIGHT_CYCLE).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
+        Component timeResponse = text("debug:commands.time.response");
+        timeCommands.addOption(new BooleanGameruleOption(text("debug:commands.time.enabled"), GameRules.RULE_DAYLIGHT).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
         timeCommands.addOption(new CommandOption(text("debug:commands.time.day"), "time set day", timeResponse));
         timeCommands.addOption(new CommandOption(text("debug:commands.time.noon"), "time set noon", timeResponse));
         timeCommands.addOption(new CommandOption(text("debug:commands.time.night"), "time set night", timeResponse));
         timeCommands.addOption(new CommandOption(text("debug:commands.time.midnight"), "time set midnight", timeResponse));
 
-        Text gamemodeResponse = text("debug:commands.gamemode.response");
+        Component gamemodeResponse = text("debug:commands.gamemode.response");
         gamemodeCommands.addOption(new CommandOption(text("debug:commands.gamemode.creative"), "gamemode creative", gamemodeResponse));
         gamemodeCommands.addOption(new CommandOption(text("debug:commands.gamemode.survival"), "gamemode survival", gamemodeResponse));
         gamemodeCommands.addOption(new CommandOption(text("debug:commands.gamemode.adventure"), "gamemode adventure", gamemodeResponse));
         gamemodeCommands.addOption(new CommandOption(text("debug:commands.gamemode.spectator"), "gamemode spectator", gamemodeResponse));
 
-        Text weatherResponse = text("debug:commands.weather.response");
-        weatherCommands.addOption(new BooleanGameruleOption(text("debug:commands.weather.enabled"), GameRules.DO_WEATHER_CYCLE).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
+        Component weatherResponse = text("debug:commands.weather.response");
+        weatherCommands.addOption(new BooleanGameruleOption(text("debug:commands.weather.enabled"), GameRules.RULE_WEATHER_CYCLE).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
         weatherCommands.addOption(new CommandOption(text("debug:commands.weather.clear"), "weather clear", weatherResponse));
         weatherCommands.addOption(new CommandOption(text("debug:commands.weather.rain"), "weather rain", weatherResponse));
         weatherCommands.addOption(new CommandOption(text("debug:commands.weather.thunder"), "weather thunder", weatherResponse));
 
-        Text difficultyResponse = text("debug:commands.difficulty.response");
-        difficultyCommands.addOption(new CommandOption(new TranslatableText("options.difficulty.peaceful"), "difficulty peaceful", difficultyResponse));
-        difficultyCommands.addOption(new CommandOption(new TranslatableText("options.difficulty.easy"), "difficulty easy", difficultyResponse));
-        difficultyCommands.addOption(new CommandOption(new TranslatableText("options.difficulty.normal"), "difficulty normal", difficultyResponse));
-        difficultyCommands.addOption(new CommandOption(new TranslatableText("options.difficulty.hard"), "difficulty hard", difficultyResponse));
+        Component difficultyResponse = text("debug:commands.difficulty.response");
+        difficultyCommands.addOption(new CommandOption(new TranslatableComponent("options.difficulty.peaceful"), "difficulty peaceful", difficultyResponse));
+        difficultyCommands.addOption(new CommandOption(new TranslatableComponent("options.difficulty.easy"), "difficulty easy", difficultyResponse));
+        difficultyCommands.addOption(new CommandOption(new TranslatableComponent("options.difficulty.normal"), "difficulty normal", difficultyResponse));
+        difficultyCommands.addOption(new CommandOption(new TranslatableComponent("options.difficulty.hard"), "difficulty hard", difficultyResponse));
 
-        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.insomnia"), GameRules.DO_INSOMNIA).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
-        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.mob_spawning"), GameRules.DO_MOB_SPAWNING).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
-        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.block_drops"), GameRules.DO_TILE_DROPS).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
-        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.entity_drops"), GameRules.DO_MOB_LOOT).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
-        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.command_output"), GameRules.COMMAND_BLOCK_OUTPUT).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
+        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.insomnia"), GameRules.RULE_DOINSOMNIA).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
+        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.mob_spawning"), GameRules.RULE_DOMOBSPAWNING).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
+        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.block_drops"), GameRules.RULE_DOBLOCKDROPS).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
+        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.entity_drops"), GameRules.RULE_DOENTITYDROPS).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
+        miscCommands.addOption(new BooleanGameruleOption(text("debug:commands.misc.command_output"), GameRules.RULE_COMMANDBLOCKOUTPUT).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
         miscCommands.addOption(new CommandOption(text("debug:commands.misc.debug_stick"), "give @s minecraft:debug_stick", text("debug:commands.misc.debug_stick.response")));
         miscCommands.addOption(new CommandOption(text("debug:commands.misc.command_block"), "give @s minecraft:command_block", text("debug:commands.misc.command_block.response")));
         miscCommands.addOption(new CommandOption(text("debug:commands.misc.command_block_cart"), "give @s minecraft:command_block_minecart", text("debug:commands.misc.command_block_cart.response")));
         miscCommands.addOption(new CommandOption(text("debug:commands.misc.structure_block"), "give @s minecraft:structure_block", text("debug:commands.misc.structure_block.response")));
 
-        tickSpeedCommands.addOption(new NumberGameruleOption(text("debug:commands.tick_speed"), GameRules.RANDOM_TICK_SPEED).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
+        tickSpeedCommands.addOption(new NumberGameruleOption(text("debug:commands.tick_speed"), GameRules.RULE_RANDOMTICKING).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC));
         tickSpeedCommands.addOption(new CommandOption(text("debug:commands.tick_speed.0"), "gamerule randomTickSpeed 0", text("debug:commands.tick_speed.response.0")));
         tickSpeedCommands.addOption(new CommandOption(text("debug:commands.tick_speed.3"), "gamerule randomTickSpeed 3", text("debug:commands.tick_speed.response.3")));
         tickSpeedCommands.addOption(new CommandOption(text("debug:commands.tick_speed.10"), "gamerule randomTickSpeed 10", text("debug:commands.tick_speed.response.10")));
@@ -97,7 +97,7 @@ public class DefaultMenuInitializer implements DebugMenuInitializer {
         actions.addOption(new RenderDistanceOption(text("debug:render_distance")));
         actions.addOption(new LostFocusPauseOption(text("debug:pause_unfocus")));
 
-        copy.addOption(new SimpleActionOption(text("debug:copy_tp"), this::copyTpLocation).hideIf(MinecraftClient::hasReducedDebugInfo));
+        copy.addOption(new SimpleActionOption(text("debug:copy_tp"), this::copyTpLocation).hideIf(Minecraft::showOnlyReducedInfo));
         copy.addOption(new CopyTargetOption(text("debug:copy_targeted")));
 
         display.addOption(new EntityHitboxOption(text("debug:entity_hitboxes")));
@@ -110,33 +110,33 @@ public class DefaultMenuInitializer implements DebugMenuInitializer {
         display.addOption(new DebugRenderOption(text("debug:collisions"), DebugRenderers.COLLISIONS_SHOWN));
     }
 
-    private static Text text(String optionId) {
-        return new TranslatableText(Util.createTranslationKey("debug.options", new Identifier(optionId)));
+    private static Component text(String optionId) {
+        return new TranslatableComponent(Util.makeDescriptionId("debug.options", new ResourceLocation(optionId)));
     }
 
     private void reloadChunks(OptionSelectContext context) {
         context.spawnResponse(text("debug:reload_chunks.response"));
-        client.worldRenderer.reload();
+        minecraft.levelRenderer.allChanged();
     }
 
     private void clearChat(OptionSelectContext context) {
-        if (client.inGameHud != null) {
+        if (minecraft.gui != null) {
             context.spawnResponse(text("debug:clear_chat.response"));
-            client.inGameHud.getChatHud().clear(false);
+            minecraft.gui.getChat().clearMessages(false);
         }
     }
 
     private void reloadResources(OptionSelectContext context) {
         context.spawnResponse(text("debug:reload_resources.response"));
-        client.reloadResources();
+        minecraft.reloadResourcePacks();
     }
 
     private void copyTpLocation(OptionSelectContext context) {
-        if (!client.hasReducedDebugInfo()) {
-            ClientPlayerEntity player = client.player;
+        if (!minecraft.showOnlyReducedInfo()) {
+            LocalPlayer player = minecraft.player;
             assert player != null;
 
-            ClientPlayNetworkHandler netHandler = player.networkHandler;
+            ClientPacketListener netHandler = player.connection;
             if (netHandler == null) {
                 return;
             }
@@ -146,15 +146,15 @@ public class DefaultMenuInitializer implements DebugMenuInitializer {
                 String.format(
                     Locale.ROOT,
                     "/execute in %s run tp @s %.2f %.2f %.2f %.2f %.2f",
-                    player.world.getRegistryKey().getValue(),
+                    player.level.dimension().location(),
                     player.getX(), player.getY(), player.getZ(),
-                    player.yaw, player.pitch
+                    player.xRot, player.yRot
                 )
             );
         }
     }
 
     private static AbstractDebugOption hideReduced(AbstractDebugOption option, ServerDebugStatus status, DebugStatusKey<?> key) {
-        return option.hideIf(() -> MinecraftClient.getInstance().hasReducedDebugInfo() || !status.isAvailable(key));
+        return option.hideIf(() -> Minecraft.getInstance().showOnlyReducedInfo() || !status.isAvailable(key));
     }
 }
