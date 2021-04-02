@@ -25,7 +25,7 @@ public class DebugClient implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
 
     public static final DebugMenuManagerImpl MENU_MANAGER = new DebugMenuManagerImpl();
-    public static final DebugMenu ROOT_MENU = MENU_MANAGER.getMenu("debug:root");
+    public static final DebugMenu ROOT_MENU = MENU_MANAGER.getMenu(DebugMenu.ROOT);
 
     public static KeyMapping debugOptionsKey;
     public static boolean f6KeyDown = true;

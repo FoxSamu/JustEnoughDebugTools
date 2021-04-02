@@ -11,12 +11,14 @@ import net.shadew.debug.api.menu.DebugMenu;
 import net.shadew.debug.api.menu.DebugMenuManager;
 
 public class DebugMenuManagerImpl implements DebugMenuManager {
+    public static final ResourceLocation ROOT = new ResourceLocation("debug:root");
+
     private final HashMap<ResourceLocation, DebugMenu> menuInstances = new HashMap<>();
 
     @Override
     public DebugMenu getMenu(ResourceLocation name) {
         if (name == null) {
-            throw new NullPointerException();
+            name = ROOT;
         }
         return menuInstances.computeIfAbsent(name, this::createMenu);
     }

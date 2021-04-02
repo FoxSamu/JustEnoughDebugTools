@@ -14,12 +14,12 @@ public class RenderDistanceOption extends NumberOption {
     }
 
     @Override
-    protected int getValue() {
+    protected int get() {
         return (int) Option.RENDER_DISTANCE.get(Minecraft.getInstance().options);
     }
 
     @Override
-    protected void mutateValue(int delta, OptionSelectContext context) {
+    protected void mutate(int delta, OptionSelectContext context) {
         Minecraft client = context.minecraft();
         Option.RENDER_DISTANCE.set(
             client.options, Mth.clamp(

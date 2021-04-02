@@ -23,14 +23,14 @@ public class NumberGameruleOption extends NumberOption {
     }
 
     @Override
-    protected int getValue() {
+    protected int get() {
         Minecraft client = Minecraft.getInstance();
         assert client.level != null;
         return client.level.getGameRules().getInt(key);
     }
 
     @Override
-    protected void mutateValue(int delta, OptionSelectContext context) {
+    protected void mutate(int delta, OptionSelectContext context) {
         if (!context.hasPermissionLevel(2)) {
             context.spawnResponse(
                 new TranslatableComponent("debug.options.debug.commands.no_permission")
@@ -42,7 +42,7 @@ public class NumberGameruleOption extends NumberOption {
         Minecraft client = Minecraft.getInstance();
         assert client.level != null;
 
-        int newVal = getValue() + delta;
+        int newVal = get() + delta;
         context.sendCommand(command + newVal);
 
         // Temporarily set the gamerule on the client - the server is gonna send an update but we want smooth switching

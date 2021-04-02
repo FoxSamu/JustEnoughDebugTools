@@ -24,16 +24,16 @@ public class DefaultMenuInitializer implements DebugMenuInitializer {
 
     @Override
     public void onInitializeDebugMenu(DebugMenu root, DebugMenuManager factory, ServerDebugStatus debugStatus) {
-        DebugMenu commands = factory.getMenu("debug:commands");
-        DebugMenu timeCommands = factory.getMenu("debug:time_commands");
-        DebugMenu gamemodeCommands = factory.getMenu("debug:gamemode_commands");
-        DebugMenu weatherCommands = factory.getMenu("debug:weather_commands");
-        DebugMenu difficultyCommands = factory.getMenu("debug:difficulty_commands");
-        DebugMenu tickSpeedCommands = factory.getMenu("debug:tick_speed_commands");
-        DebugMenu miscCommands = factory.getMenu("debug:misc_commands");
-        DebugMenu actions = factory.getMenu("debug:actions");
-        DebugMenu copy = factory.getMenu("debug:copy");
-        DebugMenu display = factory.getMenu("debug:display");
+        DebugMenu commands = factory.getMenu(DebugMenu.COMMANDS);
+        DebugMenu timeCommands = factory.getMenu(DebugMenu.TIME_COMMANDS);
+        DebugMenu gamemodeCommands = factory.getMenu(DebugMenu.GAMEMODE_COMMANDS);
+        DebugMenu weatherCommands = factory.getMenu(DebugMenu.WEATHER_COMMANDS);
+        DebugMenu difficultyCommands = factory.getMenu(DebugMenu.DIFFICULTY_COMMANDS);
+        DebugMenu tickSpeedCommands = factory.getMenu(DebugMenu.TICK_SPEED_COMMANDS);
+        DebugMenu miscCommands = factory.getMenu(DebugMenu.MISC_COMMANDS);
+        DebugMenu actions = factory.getMenu(DebugMenu.ACTIONS);
+        DebugMenu copy = factory.getMenu(DebugMenu.COPY);
+        DebugMenu display = factory.getMenu(DebugMenu.DISPLAY);
 
         root.addOption(new MenuOption(commands));
         root.addOption(new MenuOption(actions));
