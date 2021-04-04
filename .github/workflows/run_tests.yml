@@ -18,7 +18,7 @@ jobs:
       #        run: gradle build
       - name: Run GameTests
         run: gradle runGametest
-      - name: Publish Unit Test Results
+      - name: Publish GameTest Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
