@@ -14,8 +14,8 @@ jobs:
           java-version: 14
           server-id: github
           settings-path: ${{ github.workspace }}
-      - name: Build with Gradle
-        run: gradle build
+      #      - name: Build with Gradle
+      #        run: gradle build
       - name: Run GameTests
         run: gradle runGametest
       - name: Publish Unit Test Results

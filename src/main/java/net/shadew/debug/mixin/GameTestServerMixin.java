@@ -22,4 +22,10 @@ public class GameTestServerMixin {
         // Halt runtime here, prevent the server from hanging which it somehow does
         Runtime.getRuntime().halt(testTracker.getFailedRequiredCount());
     }
+
+    @Inject(method = "onServerCrash", at = @At(value = "INVOKE", target = "Ljava/lang/System;exit(I)V"))
+    private void onCrash(CallbackInfo info) {
+        // Halt runtime here, prevent the server from hanging which it somehow does
+        Runtime.getRuntime().halt(1);
+    }
 }

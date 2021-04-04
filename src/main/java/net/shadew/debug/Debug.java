@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.minecraft.gametest.framework.GameTestRegistry;
+import net.minecraft.gametest.framework.StructureUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,6 +27,9 @@ public class Debug implements ModInitializer {
         GameTestRegistry.register(DebugTests.class);
 
         serverDebugStatus = createStatusInstance();
+        String testStructuresDir = System.getProperty("jedt.test_structures_path");
+        if (testStructuresDir != null)
+            StructureUtils.testStructuresDir = testStructuresDir;
 
         EntrypointUtils.invoke(
             "debug:main", DebugInitializer.class,
