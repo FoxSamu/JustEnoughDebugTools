@@ -43,27 +43,29 @@ jar {
     from "LICENSE"
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact(remapJar) {
-                builtBy remapJar
-                artifactId "jedt"
-            }
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
-                artifactId "jedt"
+if (project.hasProperty("shwMavenUser") && project.hasProperty("shwMavenPass")) {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifact(remapJar) {
+                    builtBy remapJar
+                    artifactId "jedt"
+                }
+                artifact(sourcesJar) {
+                    builtBy remapSourcesJar
+                    artifactId "jedt"
+                }
             }
         }
-    }
 
-    repositories {
-        maven {
-            name = "ShwMaven"
-            url = uri( "http://maven.shadew.net/" )
-            credentials {
-                username = shwMavenUser
-                password = shwMavenPass
+        repositories {
+            maven {
+                name = "ShwMaven"
+                url = uri( "http://maven.shadew.net/" )
+                credentials {
+                    username = shwMavenUser
+                    password = shwMavenPass
+                }
             }
         }
     }

@@ -3,7 +3,7 @@ name: Run GameTest
 on: [ push ]
 
 jobs:
-  build:
+  gametest:
     runs-on: ubuntu-latest
 
     steps:
@@ -12,18 +12,12 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 14
-          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-          settings-path: ${{ github.workspace }} # location for the settings.xml file
+          server-id: github
+          settings-path: ${{ github.workspace }}
       - name: Build with Gradle
         run: gradle build
-
-      # The USERNAME and PASSWORD need to correspond to the credentials environment variables used in
-      # the publishing section of your build.gradle
-      - name: Publish to GitHub Packages
+      - name: Run GameTests
         run: gradle runGametest
-        env:
-          USERNAME: ${{ github.actor }}
-          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
