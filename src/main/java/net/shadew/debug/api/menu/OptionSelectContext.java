@@ -1,6 +1,7 @@
 package net.shadew.debug.api.menu;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 
@@ -141,4 +142,19 @@ public interface OptionSelectContext {
      * @since 0.1
      */
     void setScreenPauses(boolean pause);
+
+    /**
+     * Opens a screen.
+     *
+     * @param screen The screen to open
+     * @since 0.2
+     */
+    void openScreen(Screen screen);
+
+    /**
+     * Returns the debug menu screen instance.
+     *
+     * @since 0.2
+     */
+    Screen debugMenuScreen();
 }

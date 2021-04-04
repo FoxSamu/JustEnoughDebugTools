@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.components.Widget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -23,13 +22,17 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener {
+import net.shadew.debug.api.menu.DebugOption;
+
+public class ConfigMenu extends GuiComponent implements GuiEventListener {
     private static final ResourceLocation TEXTURE = new ResourceLocation("debug:textures/gui/options.png");
     public static final int MENU_WIDTH = 128;
     public static final int ITEM_HEIGHT = 20;
     private static final int TOP_PADDING = ITEM_HEIGHT / 2 - 4;
     private static final int SIDE_PADDING = 6;
     private static final int FOREGROUND = 0xFFFFFF;
+    private static final int SCROLL_BAR_WIDTH = 3;
+    private static final int HOVERING_SCROLL_BAR_WIDTH = 4;
 
     private final Component title;
     private Runnable closeHandler;
@@ -277,24 +280,33 @@ public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener
         return mouseX >= left && mouseX <= left + MENU_WIDTH;
     }
 
-    @Override
     @SuppressWarnings("deprecation")
-    public void render(PoseStack matrices, int mouseX, int mouseY, float partialTicks) {
+    public boolean render(PoseStack matrices, int mouseX, int mouseY, float partialTicks, DescriptionBox box) {
+        boolean hasDescriptionBox = false;
         if (swapManager != null) {
-            swapManager.render(matrices, mouseX, mouseY, partialTicks);
-            return;
+            swapManager.render(matrices, mouseX, mouseY, partialTicks, box);
+            return hasDescriptionBox;
         }
 
         RenderSystem.enableBlend();
         float visibility = Mth.lerp(partialTicks, lastVisibility, this.visibility);
 
         if (visibility <= 0) {
-            return;
+            return hasDescriptionBox;
         }
 
         float itemOpacity = 1;
         float widthf = 1;
         boolean interactive = true;
+
+        int itemsHeight = entries.size() * ITEM_HEIGHT;
+        int viewHeight = height - ITEM_HEIGHT;
+        int overflow = itemsHeight - viewHeight;
+        boolean scrollbar = overflow > 0;
+        int offset = scrollbar ? (int) (overflow * scroll) : 0;
+        int scrollbarLength = scrollbar ? (int) (((float) viewHeight / itemsHeight) * viewHeight) : 0;
+        int scrollbarSpace = scrollbar ? viewHeight - scrollbarLength : 0;
+        int scrollbarOffset = scrollbar ? (int) (scrollbarSpace * scroll) : 0;
 
         if (visibility < 1) {
             if (visibility < 0.5) {
@@ -322,12 +334,9 @@ public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener
             }
         }
 
-        if ((alphaFactor & 0xFC000000) != 0) {
-            int itemsHeight = entries.size() * ITEM_HEIGHT;
-            int viewHeight = height - ITEM_HEIGHT;
-            int overflow = itemsHeight - viewHeight;
-            int offset = overflow <= 0 ? 0 : (int) (overflow * scroll);
+        boolean hoveringScrollbar = false;
 
+        if ((alphaFactor & 0xFC000000) != 0) {
             int y = ITEM_HEIGHT - offset;
             for (Entry entry : entries) {
                 int x1 = left;
@@ -347,7 +356,9 @@ public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener
                     int uOffset = ITEM_HEIGHT - visibleHeight;
                     int topY = bottomY - visibleHeight;
 
-                    if (interactive && mouseX >= x1 && mouseX < x2 && mouseY >= y1 && mouseY < y2) {
+                    if (interactive && !hoveringScrollbar && mouseX >= x1 && mouseX < x2 && mouseY >= y1 && mouseY < y2) {
+                        box.updateHovered(entry.option, x1, y1, x2 - x1, y2 - y1, DebugConfigScreen.INSTANCE.width, DebugConfigScreen.INSTANCE.height);
+                        hasDescriptionBox = true;
                         blit(matrices, left, topY, MENU_WIDTH, ITEM_HEIGHT * (3 + entry.type() * 2) + uOffset, width, visibleHeight);
                     } else {
                         blit(matrices, left, topY, MENU_WIDTH, ITEM_HEIGHT * (2 + entry.type() * 2) + uOffset, width, visibleHeight);
@@ -365,6 +376,15 @@ public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener
                 }
 
                 y += ITEM_HEIGHT;
+            }
+
+            if (scrollbar) {
+                int sx1 = left + width - SCROLL_BAR_WIDTH - 1;
+                int sx2 = left + width - 1;
+                int sy1 = ITEM_HEIGHT + scrollbarOffset;
+                int sy2 = sy1 + scrollbarLength;
+
+                fill(matrices, sx1, sy1, sx2, sy2, 0x55FFFFFF);
             }
         }
 
@@ -395,27 +415,36 @@ public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener
         }
 
         matrices.popPose();
+        return hasDescriptionBox;
     }
 
     public static class Entry implements Comparable<Entry> {
         private Component text;
+        private DebugOption option;
         private final int textColor;
         private final Runnable clickHandler;
         protected Supplier<Component> extraInfo = () -> null;
+        protected int type;
 
-        public Entry(Component text, Runnable clickHandler, int textColor) {
+        public Entry(DebugOption option, Component text, Runnable clickHandler, int textColor) {
+            this.option = option;
             this.text = text;
             this.clickHandler = clickHandler;
             this.textColor = textColor == -1 ? FOREGROUND : textColor & 0xFFFFFF;
         }
 
-        public Entry(Component text, Runnable clickHandler) {
-            this(text, clickHandler, FOREGROUND);
+        public Entry(DebugOption option, Component text, Runnable clickHandler) {
+            this(option, text, clickHandler, FOREGROUND);
         }
 
-        public Entry(Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
-            this(text, clickHandler, FOREGROUND);
+        public Entry(DebugOption option, Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
+            this(option, text, clickHandler, FOREGROUND);
             this.extraInfo = extraInfo;
+        }
+
+        public Entry(DebugOption option, Component text, Runnable clickHandler, Supplier<Component> extraInfo, int type) {
+            this(option, text, clickHandler, extraInfo);
+            this.type = type;
         }
 
         public void setText(Component text) {
@@ -427,7 +456,7 @@ public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener
         }
 
         protected int type() {
-            return 0;
+            return type;
         }
 
         public boolean hasCheck() {
@@ -448,16 +477,16 @@ public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener
     }
 
     public static class MenuEntry extends Entry {
-        public MenuEntry(Component text, Runnable clickHandler, int textColor) {
-            super(text, clickHandler, textColor);
+        public MenuEntry(DebugOption option, Component text, Runnable clickHandler, int textColor) {
+            super(option, text, clickHandler, textColor);
         }
 
-        public MenuEntry(Component text, Runnable clickHandler) {
-            super(text, clickHandler);
+        public MenuEntry(DebugOption option, Component text, Runnable clickHandler) {
+            super(option, text, clickHandler);
         }
 
-        public MenuEntry(Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
-            super(text, clickHandler);
+        public MenuEntry(DebugOption option, Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
+            super(option, text, clickHandler);
             this.extraInfo = extraInfo;
         }
 
@@ -478,18 +507,18 @@ public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener
     public static class CheckableEntry extends Entry {
         private final BooleanSupplier hasCheck;
 
-        public CheckableEntry(Component text, Runnable clickHandler, BooleanSupplier hasCheck, int textColor) {
-            super(text, clickHandler, textColor);
+        public CheckableEntry(DebugOption option, Component text, Runnable clickHandler, BooleanSupplier hasCheck, int textColor) {
+            super(option, text, clickHandler, textColor);
             this.hasCheck = hasCheck;
         }
 
-        public CheckableEntry(Component text, Runnable clickHandler, BooleanSupplier hasCheck) {
-            super(text, clickHandler);
+        public CheckableEntry(DebugOption option, Component text, Runnable clickHandler, BooleanSupplier hasCheck) {
+            super(option, text, clickHandler);
             this.hasCheck = hasCheck;
         }
 
-        public CheckableEntry(Component text, Runnable clickHandler, BooleanSupplier hasCheck, Supplier<Component> extraInfo) {
-            super(text, clickHandler);
+        public CheckableEntry(DebugOption option, Component text, Runnable clickHandler, BooleanSupplier hasCheck, Supplier<Component> extraInfo) {
+            super(option, text, clickHandler);
             this.hasCheck = hasCheck;
             this.extraInfo = extraInfo;
         }
@@ -504,29 +533,29 @@ public class ConfigMenu extends GuiComponent implements Widget, GuiEventListener
         private final Runnable upperClickHandler;
         private final Runnable lowerClickHandler;
 
-        public SpinnerEntry(Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value, int textColor) {
-            super(text, clickHandler, textColor);
+        public SpinnerEntry(DebugOption option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value, int textColor) {
+            super(option, text, clickHandler, textColor);
             this.extraInfo = () -> new TextComponent(value.getAsInt() + "");
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;
         }
 
-        public SpinnerEntry(Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value) {
-            super(text, clickHandler);
+        public SpinnerEntry(DebugOption option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value) {
+            super(option, text, clickHandler);
             this.extraInfo = () -> new TextComponent(value.getAsInt() + "");
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;
         }
 
-        public SpinnerEntry(Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value, int textColor) {
-            super(text, clickHandler, textColor);
+        public SpinnerEntry(DebugOption option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value, int textColor) {
+            super(option, text, clickHandler, textColor);
             this.extraInfo = value;
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;
         }
 
-        public SpinnerEntry(Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value) {
-            super(text, clickHandler);
+        public SpinnerEntry(DebugOption option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value) {
+            super(option, text, clickHandler);
             this.extraInfo = value;
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;

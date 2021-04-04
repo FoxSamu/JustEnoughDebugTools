@@ -19,6 +19,8 @@ import net.shadew.debug.api.status.ServerDebugStatus;
  */
 public abstract class AbstractDebugOption implements DebugOption {
     private final Component name;
+    private Component longName;
+    private Component description;
     private BooleanSupplier visible = () -> true;
 
     /**
@@ -37,6 +39,26 @@ public abstract class AbstractDebugOption implements DebugOption {
     @Override
     public Component getName() {
         return name;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 0.2
+     */
+    @Override
+    public Component getLongName() {
+        return longName;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @since 0.2
+     */
+    @Override
+    public Component getDescription() {
+        return description;
     }
 
     /**
@@ -156,6 +178,28 @@ public abstract class AbstractDebugOption implements DebugOption {
      */
     public AbstractDebugOption hideIf(Predicate<Minecraft> pred) {
         visible = () -> !pred.test(Minecraft.getInstance());
+        return this;
+    }
+
+    /**
+     * Sets the description of this component.
+     *
+     * @param desc The description
+     * @since 0.2
+     */
+    public AbstractDebugOption desc(Component desc) {
+        description = desc;
+        return this;
+    }
+
+    /**
+     * Sets the long name of this component.
+     *
+     * @param name The long name
+     * @since 0.2
+     */
+    public AbstractDebugOption longName(Component name) {
+        longName = name;
         return this;
     }
 }

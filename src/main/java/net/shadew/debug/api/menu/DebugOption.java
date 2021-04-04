@@ -32,9 +32,8 @@ public interface DebugOption {
      * Returns a longer name to display on the widget to show when it is hovered. This is intended for options with long
      * names that do not fit on the option widget. When null is returned, no long name will be displayed.
      *
-     * @deprecated This is not yet implemented.
+     * @since 0.2
      */
-    @Deprecated
     default Component getLongName() {
         return null;
     }
@@ -58,9 +57,8 @@ public interface DebugOption {
     /**
      * Returns an informative description for this option. When null is returned, this option will have no description.
      *
-     * @deprecated This is not yet implemented.
+     * @since 0.2
      */
-    @Deprecated
     default Component getDescription() {
         return null;
     }

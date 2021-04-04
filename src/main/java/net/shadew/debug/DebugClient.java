@@ -36,11 +36,7 @@ public class DebugClient implements ClientModInitializer {
     public void onInitializeClient() {
         serverDebugStatus = Debug.createStatusInstance();
 
-        new DefaultMenuInitializer().onInitializeDebugMenu(ROOT_MENU, MENU_MANAGER, serverDebugStatus);
-        EntrypointUtils.invoke(
-            "debug:menu", DebugMenuInitializer.class,
-            init -> init.onInitializeDebugMenu(ROOT_MENU, MENU_MANAGER, serverDebugStatus)
-        );
+        reloadMenus();
         EntrypointUtils.invoke(
             "debug:client", DebugClientInitializer.class,
             init -> init.onInitializeDebugClient(serverDebugStatus)
@@ -66,5 +62,15 @@ public class DebugClient implements ClientModInitializer {
             int my = (int) (client.mouseHandler.ypos() * (double) client.getWindow().getGuiScaledHeight() / client.getWindow().getHeight());
             DebugConfigScreen.INSTANCE.receiveRender(matrixStack, mx, my, tickDelta);
         });
+    }
+
+    public static void reloadMenus() {
+        LOGGER.info("Reloading menus");
+        MENU_MANAGER.clearAll();
+        new DefaultMenuInitializer().onInitializeDebugMenu(ROOT_MENU, MENU_MANAGER, serverDebugStatus);
+        EntrypointUtils.invoke(
+            "debug:menu", DebugMenuInitializer.class,
+            init -> init.onInitializeDebugMenu(ROOT_MENU, MENU_MANAGER, serverDebugStatus)
+        );
     }
 }

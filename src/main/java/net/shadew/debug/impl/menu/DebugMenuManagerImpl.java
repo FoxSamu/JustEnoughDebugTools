@@ -13,7 +13,7 @@ import net.shadew.debug.api.menu.DebugMenuManager;
 public class DebugMenuManagerImpl implements DebugMenuManager {
     public static final ResourceLocation ROOT = new ResourceLocation("debug:root");
 
-    private final HashMap<ResourceLocation, DebugMenu> menuInstances = new HashMap<>();
+    private final HashMap<ResourceLocation, DebugMenuImpl> menuInstances = new HashMap<>();
 
     @Override
     public DebugMenu getMenu(ResourceLocation name) {
@@ -23,11 +23,15 @@ public class DebugMenuManagerImpl implements DebugMenuManager {
         return menuInstances.computeIfAbsent(name, this::createMenu);
     }
 
-    public Map<ResourceLocation, DebugMenu> getAllMenus() {
+    public void clearAll() {
+        menuInstances.forEach((key, menu) -> menu.clear());
+    }
+
+    public Map<ResourceLocation, DebugMenuImpl> getAllMenus() {
         return menuInstances;
     }
 
-    private DebugMenu createMenu(ResourceLocation name) {
+    private DebugMenuImpl createMenu(ResourceLocation name) {
         return new DebugMenuImpl(new TranslatableComponent(Util.makeDescriptionId("debug.menu", name)));
     }
 }

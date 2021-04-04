@@ -75,6 +75,11 @@ public interface DebugMenu {
     ResourceLocation DISPLAY = new ResourceLocation("debug:display");
 
     /**
+     * The identifier of the 'GameTest' menu.
+     */
+    ResourceLocation GAMETEST = new ResourceLocation("debug:gametest");
+
+    /**
      * Returns a {@link Component} to display in the header of this menu. By default, this is a {@link
      * TranslatableComponent} with the translation key {@code debug.menu.[namespace].[menu name]}, with the namespace
      * and menu name that were given in {@link DebugMenuManager#getMenu}.

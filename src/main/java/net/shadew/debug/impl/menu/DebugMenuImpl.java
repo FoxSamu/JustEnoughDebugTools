@@ -31,4 +31,8 @@ public class DebugMenuImpl implements DebugMenu {
     public void addOption(DebugOption option) {
         options.add(option);
     }
+
+    public void clear() {
+        options.clear();
+    }
 }

@@ -9,16 +9,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL32;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntConsumer;
 
 import net.shadew.debug.DebugClient;
-import net.shadew.debug.api.menu.DebugMenu;
-import net.shadew.debug.api.menu.DebugOption;
-import net.shadew.debug.api.menu.OptionSelectContext;
-import net.shadew.debug.api.menu.OptionType;
+import net.shadew.debug.api.menu.*;
 
 public class DebugConfigScreen extends Screen {
     public static final DebugConfigScreen INSTANCE = new DebugConfigScreen();
@@ -26,6 +24,7 @@ public class DebugConfigScreen extends Screen {
     private final List<ConfigMenu> menus = new ArrayList<>();
     private final List<HoverText> hoverTexts = new ArrayList<>();
     private final ClipboardManager clipboard = new ClipboardManager();
+    private final DescriptionBox descriptionBox = new DescriptionBox();
 
     private boolean pauses;
 
@@ -38,9 +37,11 @@ public class DebugConfigScreen extends Screen {
         super.init();
         assert minecraft != null;
 
-        openMenu(DebugClient.ROOT_MENU, 0);
+        if (!hasOpenMenus()) {
+            openMenu(DebugClient.ROOT_MENU, 0);
 
-        children.clear();
+            children.clear();
+        }
     }
 
     @Override
@@ -53,6 +54,7 @@ public class DebugConfigScreen extends Screen {
         this.width = width;
         this.height = height;
         this.minecraft = minecraft;
+        descriptionBox.resizeScreen(width, height);
     }
 
     private void openMenu(DebugMenu debugMenu, int index) {
@@ -73,19 +75,22 @@ public class DebugConfigScreen extends Screen {
 
         switch (type) {
             case ACTION:
-                return new ConfigMenu.Entry(option.getName(), () -> handler.accept(0), option::getDisplayValue);
+                return new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
             case MENU:
-                return new ConfigMenu.MenuEntry(option.getName(), () -> handler.accept(0), option::getDisplayValue);
+                return new ConfigMenu.MenuEntry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
             case BOOLEAN:
-                return new ConfigMenu.CheckableEntry(option.getName(), () -> handler.accept(0), option::hasCheck, option::getDisplayValue);
+                return new ConfigMenu.CheckableEntry(option, option.getName(), () -> handler.accept(0), option::hasCheck, option::getDisplayValue);
             case NUMBER:
                 return new ConfigMenu.SpinnerEntry(
+                    option,
                     option.getName(),
                     () -> handler.accept(Screen.hasShiftDown() ? -1 : 1),
                     () -> handler.accept(1),
                     () -> handler.accept(-1),
                     option::getDisplayValue
                 );
+            case EXTERNAL:
+                return new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue, 4);
             default:
                 throw new AssertionError();
         }
@@ -129,7 +134,25 @@ public class DebugConfigScreen extends Screen {
         closeMenusFrom(index + 1);
     }
 
+    private boolean isInvalidOverlayScreen(Screen screen) {
+        if (screen == this) {
+            return false;
+        }
+
+        if (screen instanceof DebugMenuOverlayScreen) {
+            return ((DebugMenuOverlayScreen) screen).getParentScreen() != this;
+        }
+
+        return screen == null;
+    }
+
     public void receiveTick() {
+        // Close our menus if we're not literally overlayed
+        if (minecraft == null || isInvalidOverlayScreen(minecraft.screen)) {
+            for (ConfigMenu menu : menus) {
+                menu.closeQuietly();
+            }
+        }
         menus.forEach(ConfigMenu::tick);
         menus.removeIf(ConfigMenu::isFullyClosed);
 
@@ -143,24 +166,29 @@ public class DebugConfigScreen extends Screen {
         return menus.stream().mapToInt(menu -> menu.getDisplayableWidth(partialTicks)).sum();
     }
 
-    public void receiveRender(PoseStack pose, int mouseX, int mouseY, float partialTicks) {
+    public void receiveRender(PoseStack pose, int mouseX, int mouseY, float tickProgress) {
         assert minecraft != null;
+
+        RenderSystem.clear(GL32.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
 
         pose.pushPose();
         pose.translate(0, 0, 110);
         RenderSystem.disableDepthTest();
 
-        int totalWidth = getTotalWidth(partialTicks);
+        int totalWidth = getTotalWidth(tickProgress);
 
         int oversize = Math.max(0, totalWidth - width);
         int leftOffset = -oversize;
 
+        boolean clearDescriptionBox = true;
         for (ConfigMenu menu : menus) {
             if (menu.canRender()) {
-                int w = menu.getDisplayableWidth(partialTicks);
+                int w = menu.getDisplayableWidth(tickProgress);
                 menu.setHeight(height);
                 menu.setLeftOffset(leftOffset);
-                menu.render(pose, mouseX, mouseY, partialTicks);
+                if (menu.render(pose, mouseX, mouseY, tickProgress, descriptionBox)) {
+                    clearDescriptionBox = false;
+                }
                 leftOffset += w;
             }
         }
@@ -178,8 +206,15 @@ public class DebugConfigScreen extends Screen {
             }
         }
 
+        pose.translate(0, 0, 5);
+        if (clearDescriptionBox) {
+            descriptionBox.updateHovered(null, 0, 0, 0, 0, width, height);
+        }
+        descriptionBox.render(pose, mouseX, mouseY, tickProgress);
+
         RenderSystem.enableDepthTest();
         pose.popPose();
+
     }
 
     private void drawHoverTextBackground(PoseStack matrices, int x1, int y1, int x2, int y2, float alpha) {
@@ -216,10 +251,28 @@ public class DebugConfigScreen extends Screen {
         }
     }
 
+    private boolean hasOpenMenus() {
+        for (ConfigMenu menu : menus) {
+            if (!menu.isClosed()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
             closeLastInteractiveMenu();
+            return true;
+        }
+        if (keyCode == GLFW.GLFW_KEY_R && (modifiers & GLFW.GLFW_MOD_CONTROL) != 0) {
+            for (ConfigMenu menu : menus) {
+                menu.closeQuietly();
+            }
+            DebugClient.reloadMenus();
+            openMenu(DebugClient.ROOT_MENU, 0);
+            children.clear();
             return true;
         }
         if (super.keyPressed(keyCode, scanCode, modifiers)) {
@@ -317,6 +370,16 @@ public class DebugConfigScreen extends Screen {
         @Override
         public void setScreenPauses(boolean pause) {
             pauses = pause;
+        }
+
+        @Override
+        public void openScreen(Screen screen) {
+            minecraft().setScreen(screen);
+        }
+
+        @Override
+        public Screen debugMenuScreen() {
+            return DebugConfigScreen.this;
         }
     }
 }

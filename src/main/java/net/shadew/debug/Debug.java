@@ -3,12 +3,14 @@ package net.shadew.debug;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
+import net.minecraft.gametest.framework.GameTestRegistry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.shadew.debug.api.DebugInitializer;
 import net.shadew.debug.api.DebugStatusInitializer;
 import net.shadew.debug.impl.status.ServerDebugStatusImpl;
+import net.shadew.debug.test.DebugTests;
 
 public class Debug implements ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
@@ -18,6 +20,11 @@ public class Debug implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        // Enable GameTest
+        // SharedConstants.IS_RUNNING_IN_IDE = true;
+
+        GameTestRegistry.register(DebugTests.class);
+
         serverDebugStatus = createStatusInstance();
 
         EntrypointUtils.invoke(

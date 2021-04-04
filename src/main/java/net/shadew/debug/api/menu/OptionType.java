@@ -35,5 +35,12 @@ public enum OptionType {
      *
      * @since 0.1
      */
-    NUMBER
+    NUMBER,
+
+    /**
+     * Type for an option that opens another screen or pop-up. This renders a diagonal arrow on the option.
+     *
+     * @since 0.2
+     */
+    EXTERNAL
 }

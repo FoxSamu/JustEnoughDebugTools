@@ -3,6 +3,8 @@ package net.shadew.debug.api.menu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.GameRules;
 
@@ -10,16 +12,29 @@ public class NumberGameruleOption extends NumberOption {
     private final String command;
     private final Component response;
     private final GameRules.Key<GameRules.IntegerValue> key;
+    private final Component commandDesc;
 
     public NumberGameruleOption(Component name, GameRules.Key<GameRules.IntegerValue> key, Component response) {
         super(name);
         this.command = "gamerule " + key + " ";
         this.response = response;
         this.key = key;
+        this.commandDesc = new TextComponent("/" + command + "<x>").withStyle(ChatFormatting.AQUA);
     }
 
     public NumberGameruleOption(Component name, GameRules.Key<GameRules.IntegerValue> key) {
         this(name, key, null);
+    }
+
+    @Override
+    public Component getDescription() {
+        MutableComponent desc = new TextComponent("").append(commandDesc);
+        Component superDesc = super.getDescription();
+        if (superDesc != null) {
+            desc.append("\n");
+            desc.append(superDesc);
+        }
+        return desc;
     }
 
     @Override
