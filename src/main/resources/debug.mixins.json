@@ -7,10 +7,13 @@
     "CommandsMixin",
     "DebugPacketsMixin",
     "GameRulesRuleMixin",
+    "GameTestInfoMixin",
+    "GameTestServerMixin",
     "MinecraftServerMixin",
     "PathMixin",
     "PlayerManagerMixin",
     "ReportGameListenerMixin",
+    "ServerMainMixin",
     "StructureUtilsMixin"
   ],
   "client": ["DebugRendererAccessor", "DebugRendererMixin", "EditBoxAccessor", "PathfindingDebugRendererMixin"],

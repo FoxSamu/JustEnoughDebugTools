@@ -68,3 +68,14 @@ publishing {
         }
     }
 }
+
+loom {
+    runs {
+        gametest {
+            server()
+
+            vmArg "-Djedt.test_mod=debug"
+            serverWithGui() // GameTestServer has no nogui property, this removes it
+        }
+    }
+}

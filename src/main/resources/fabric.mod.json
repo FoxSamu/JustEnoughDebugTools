@@ -21,6 +21,9 @@
     "main": [
       "net.shadew.debug.Debug",
       "net.shadew.debug.util.DebugNetwork"
+    ],
+    "debug:gametest": [
+      "net.shadew.debug.DebugGameTest"
     ]
   },
 
