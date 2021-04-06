@@ -51,6 +51,8 @@ public class DefaultMenuInitializer implements DebugMenuInitializer {
         commands.addOption(new MenuOption(difficultyCommands).longName(new TranslatableComponent("debug.menu.debug.difficulty_commands.long")));
         commands.addOption(new MenuOption(tickSpeedCommands).longName(new TranslatableComponent("debug.menu.debug.tick_speed_commands.long")));
         commands.addOption(new MenuOption(miscCommands).longName(new TranslatableComponent("debug.menu.debug.misc_commands.long")));
+        commands.addOption(new CommandOption(text("debug:commands.start_profiler"), "debug start", text("debug:commands.start_profiler")).longName(longn("debug:commands.start_profiler")));
+        commands.addOption(new CommandOption(text("debug:commands.stop_profiler"), "debug stop", text("debug:commands.stop_profiler")).longName(longn("debug:commands.stop_profiler")));
 
         Component timeResponse = text("debug:commands.time.response");
         timeCommands.addOption(new BooleanGameruleOption(text("debug:commands.time.enabled"), GameRules.RULE_DAYLIGHT).onlyIf(debugStatus, StandardStatusKeys.GAME_RULE_SYNC).longName(longn("debug:commands.time.enabled")));
