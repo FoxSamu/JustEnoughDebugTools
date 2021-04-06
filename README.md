@@ -2,7 +2,7 @@
 
 [work in progress]
 
-You can add the mod to your 1.16.5 workspace:
+You can add the mod to your 21w13a workspace. It requires the Fabric API and the Fabric Loader (v0.11.3 or higher).
 
 ```groovy
 repositories {
@@ -12,7 +12,8 @@ repositories {
 dependencies {
     // ...other dependencies...
 
-    modImplementation("net.shadew:jedt:0.1") {
+    // For 1.16.5, use version 0.1 instead
+    modImplementation("net.shadew:jedt:0.2") {
         exclude group: "net.fabricmc"
         exclude group: "net.fabricmc.fabric-api"
     }
@@ -44,3 +45,5 @@ properties in this JSON file. Currently, there are three configurable properties
 - `send_neighbor_updates` (default: `true`) indicates whether the server should send neighbor update information to the
   client. This is used on the client to render updates of neighbors. When `false`, the neighbor update debug tool is not
   available in the menu.
+- `enable_gametest` (default: `true`) indicates whether the server allows the usage of the GameTest framework.
+  Integration with the GameTest framework is experimental.
