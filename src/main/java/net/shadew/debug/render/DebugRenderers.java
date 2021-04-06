@@ -1,10 +1,13 @@
 package net.shadew.debug.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
+import net.shadew.debug.DebugClient;
 import net.shadew.debug.api.render.DebugRenderEvents;
 import net.shadew.debug.api.render.DebugView;
 import net.shadew.debug.api.render.DebugViewManager;
@@ -28,7 +31,19 @@ public class DebugRenderers {
     }
 
     public static void render(PoseStack pose, MultiBufferSource.BufferSource buffSource, double cameraX, double cameraY, double cameraZ) {
-        DebugRenderEvents.RENDER.invoker().render(pose, buffSource, cameraX, cameraY, cameraZ);
+
+        MultiBufferSource.BufferSource buffsrc = DebugClient.BUFFERS.getBufferSource();
+
+        DebugRenderEvents.RENDER.invoker().render(pose, buffsrc, cameraX, cameraY, cameraZ);
+
+        RenderSystem.getModelViewStack().pushPose();
+        RenderSystem.getModelViewStack().last().pose().setIdentity();
+        RenderSystem.getModelViewStack().last().normal().setIdentity();
+        RenderSystem.applyModelViewMatrix();
+        buffsrc.endBatch(RenderType.lines());
+        buffsrc.endBatch();
+        RenderSystem.getModelViewStack().popPose();
+        RenderSystem.applyModelViewMatrix();
     }
 
     private static <V extends DebugView> V register(V view) {

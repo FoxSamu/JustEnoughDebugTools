@@ -19,6 +19,7 @@ import net.shadew.debug.api.menu.DebugMenu;
 import net.shadew.debug.gui.DebugConfigScreen;
 import net.shadew.debug.impl.menu.DebugMenuManagerImpl;
 import net.shadew.debug.impl.status.ServerDebugStatusImpl;
+import net.shadew.debug.render.DebugBuffers;
 
 @Environment(EnvType.CLIENT)
 public class DebugClient implements ClientModInitializer {
@@ -31,6 +32,8 @@ public class DebugClient implements ClientModInitializer {
     public static boolean f6KeyDown = true;
 
     public static ServerDebugStatusImpl serverDebugStatus;
+
+    public static final DebugBuffers BUFFERS = new DebugBuffers();
 
     @Override
     public void onInitializeClient() {

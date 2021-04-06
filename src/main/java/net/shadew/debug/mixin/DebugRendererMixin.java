@@ -19,6 +19,12 @@ public class DebugRendererMixin {
 
     @Inject(method = "render", at = @At("HEAD"))
     private void onRender(PoseStack pose, MultiBufferSource.BufferSource buffSource, double cameraX, double cameraY, double cameraZ, CallbackInfo info) {
+        pose.pushPose();
         DebugRenderers.render(pose, buffSource, cameraX, cameraY, cameraZ);
+    }
+
+    @Inject(method = "render", at = @At("RETURN"))
+    private void onRenderPost(PoseStack pose, MultiBufferSource.BufferSource buffSource, double cameraX, double cameraY, double cameraZ, CallbackInfo info) {
+        pose.popPose();
     }
 }
