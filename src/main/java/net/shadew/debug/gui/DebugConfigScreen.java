@@ -8,6 +8,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
+import net.shadew.debug.mixin.ScreenAccessor;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL32;
 
@@ -40,7 +41,7 @@ public class DebugConfigScreen extends Screen {
         if (!hasOpenMenus()) {
             openMenu(DebugClient.ROOT_MENU, 0);
 
-            children.clear();
+            children().clear();
         }
     }
 
@@ -73,27 +74,13 @@ public class DebugConfigScreen extends Screen {
             option.onClick(context);
         };
 
-        switch (type) {
-            case ACTION:
-                return new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
-            case MENU:
-                return new ConfigMenu.MenuEntry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
-            case BOOLEAN:
-                return new ConfigMenu.CheckableEntry(option, option.getName(), () -> handler.accept(0), option::hasCheck, option::getDisplayValue);
-            case NUMBER:
-                return new ConfigMenu.SpinnerEntry(
-                    option,
-                    option.getName(),
-                    () -> handler.accept(Screen.hasShiftDown() ? -1 : 1),
-                    () -> handler.accept(1),
-                    () -> handler.accept(-1),
-                    option::getDisplayValue
-                );
-            case EXTERNAL:
-                return new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue, 4);
-            default:
-                throw new AssertionError();
-        }
+        return switch (type) {
+            case ACTION -> new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
+            case MENU -> new ConfigMenu.MenuEntry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
+            case BOOLEAN -> new ConfigMenu.CheckableEntry(option, option.getName(), () -> handler.accept(0), option::hasCheck, option::getDisplayValue);
+            case NUMBER -> new ConfigMenu.SpinnerEntry(option, option.getName(), () -> handler.accept(Screen.hasShiftDown() ? -1 : 1), () -> handler.accept(1), () -> handler.accept(-1), option::getDisplayValue);
+            case EXTERNAL -> new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue, 4);
+        };
     }
 
     private void spawnHoverText(Component text) {
@@ -156,8 +143,8 @@ public class DebugConfigScreen extends Screen {
         menus.forEach(ConfigMenu::tick);
         menus.removeIf(ConfigMenu::isFullyClosed);
 
-        children.clear();
-        children.addAll(menus);
+        children().clear();
+        ((ScreenAccessor) this).getChildren().addAll(menus);
 
         hoverTexts.removeIf(txt -> txt.existTime-- < 0);
     }
@@ -272,7 +259,7 @@ public class DebugConfigScreen extends Screen {
             }
             DebugClient.reloadMenus();
             openMenu(DebugClient.ROOT_MENU, 0);
-            children.clear();
+            children().clear();
             return true;
         }
         if (super.keyPressed(keyCode, scanCode, modifiers)) {

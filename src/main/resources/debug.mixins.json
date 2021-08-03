@@ -16,7 +16,13 @@
     "ServerMainMixin",
     "StructureUtilsMixin"
   ],
-  "client": ["DebugRendererAccessor", "DebugRendererMixin", "EditBoxAccessor", "PathfindingDebugRendererMixin"],
+  "client": [
+    "DebugRendererAccessor",
+    "DebugRendererMixin",
+    "EditBoxAccessor",
+    "PathfindingDebugRendererMixin",
+    "ScreenAccessor"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

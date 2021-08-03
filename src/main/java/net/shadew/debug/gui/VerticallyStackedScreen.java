@@ -13,6 +13,7 @@ import java.util.function.IntSupplier;
 
 import net.shadew.debug.api.menu.DebugMenuOverlayScreen;
 import net.shadew.debug.gui.widgets.CompletableEditBox;
+import net.shadew.debug.mixin.ScreenAccessor;
 
 public abstract class VerticallyStackedScreen extends DebugMenuOverlayScreen {
     private final List<Pair<Alignable, IntSupplier>> alignables = new ArrayList<>();
@@ -49,8 +50,9 @@ public abstract class VerticallyStackedScreen extends DebugMenuOverlayScreen {
     protected void init() {
         super.init();
 
-        buttons.addAll(widgets);
-        children.addAll(eventListeners);
+        ScreenAccessor accessor = ((ScreenAccessor) this);
+        accessor.getRenderables().addAll(widgets);
+        accessor.getChildren().addAll(eventListeners);
 
         int totalHeight = 0;
         for (Pair<Alignable, IntSupplier> pair : alignables)

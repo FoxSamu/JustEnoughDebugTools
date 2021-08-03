@@ -16,6 +16,7 @@ import java.util.zip.ZipOutputStream;
 public class GameTestCIUtil {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public static void exportTestWorldAsZip(GameTestServer server, File outputFile) {
         Path path = server.getWorldPath(LevelResource.ROOT).toAbsolutePath();
         outputFile.getAbsoluteFile().getParentFile().mkdirs();

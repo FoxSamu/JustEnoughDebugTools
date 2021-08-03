@@ -228,6 +228,7 @@ public class CompletableEditBox<T> extends EditBox {
         }
     }
 
+    @SuppressWarnings("RegExpUnnecessaryNonCapturingGroup")
     public static class SuggestionsLayer extends GuiComponent implements GuiEventListener {
         private static final int MAX_ELEMENTS_VISIBLE = 10;
         private static final Pattern WORD_BOUNDARY = Pattern.compile("\\b(?:$)");

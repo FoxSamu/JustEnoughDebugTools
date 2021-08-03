@@ -280,7 +280,6 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
         return mouseX >= left && mouseX <= left + MENU_WIDTH;
     }
 
-    @SuppressWarnings("deprecation")
     public boolean render(PoseStack matrices, int mouseX, int mouseY, float partialTicks, DescriptionBox box) {
         boolean hasDescriptionBox = false;
         if (swapManager != null) {

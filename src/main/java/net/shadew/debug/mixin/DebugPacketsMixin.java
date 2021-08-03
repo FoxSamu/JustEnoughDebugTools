@@ -32,6 +32,9 @@ public class DebugPacketsMixin {
     // do. Supposedly nobody is going to mixin into this class for some other reason than just re-adding the method
     // contents that Mojang removed.
 
+    /**
+     * @author Shadew
+     */
     @Overwrite
     public static void sendPathFindingPacket(Level world, Mob mob, @Nullable Path path, float nodeReachProximity) {
         if (path == null || !(world instanceof ServerLevel)) {
@@ -54,6 +57,9 @@ public class DebugPacketsMixin {
         sendToAllWatching((ServerLevel) world, buf, ClientboundCustomPayloadPacket.DEBUG_PATHFINDING_PACKET, mob);
     }
 
+    /**
+     * @author Shadew
+     */
     @Overwrite
     public static void sendNeighborsUpdatePacket(Level world, BlockPos pos) {
         if (!(world instanceof ServerLevel)) {
@@ -75,6 +81,9 @@ public class DebugPacketsMixin {
         sendToAllWatching((ServerLevel) world, buf, ClientboundCustomPayloadPacket.DEBUG_NEIGHBORSUPDATE_PACKET, pos);
     }
 
+    /**
+     * @author Shadew
+     */
     @Overwrite
     public static void sendPoiPacketsForChunk(ServerLevel world, ChunkPos pos) {
 

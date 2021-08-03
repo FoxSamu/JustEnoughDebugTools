@@ -47,6 +47,7 @@ public class ProperJUnitLikeTestReporter implements TestReporter {
       return element;
    }
 
+   @SuppressWarnings("ConstantConditions")
    @Override
    public void onTestFailed(GameTestInfo gameTestInfo) {
       String string = gameTestInfo.getTestName();

@@ -13,6 +13,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+@SuppressWarnings("InvalidInjectorMethodSignature")
 @Mixin(targets = "net.minecraft.gametest.framework.ReportGameListener")
 public class ReportGameListenerMixin {
     private static final Logger LOGGER = LogManager.getLogger("ReportGameListener");
