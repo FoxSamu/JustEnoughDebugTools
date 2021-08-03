@@ -33,6 +33,7 @@ public class DebugPacketsMixin {
     // contents that Mojang removed.
 
     /**
+     * @reason ---
      * @author Shadew
      */
     @Overwrite
@@ -58,6 +59,7 @@ public class DebugPacketsMixin {
     }
 
     /**
+     * @reason ---
      * @author Shadew
      */
     @Overwrite
@@ -82,6 +84,7 @@ public class DebugPacketsMixin {
     }
 
     /**
+     * @reason ---
      * @author Shadew
      */
     @Overwrite
