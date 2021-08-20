@@ -70,7 +70,7 @@ public class GameTestServerStarter {
 
             // Find mod that was asked for testing
             Optional<ModContainer> optContainer = FabricLoader.INSTANCE.getModContainer(mod);
-            if (!optContainer.isPresent()) {
+            if (optContainer.isEmpty()) {
                 throw new RuntimeException("No mod container found with ID: " + mod);
             }
 

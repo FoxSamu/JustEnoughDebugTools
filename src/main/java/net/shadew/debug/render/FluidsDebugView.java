@@ -19,18 +19,13 @@ import net.minecraft.world.phys.Vec3;
 import net.shadew.debug.api.render.DebugView;
 
 @Environment(EnvType.CLIENT)
-public class FluidsDebugView implements DebugView {
-    private final Minecraft client;
-
-    public FluidsDebugView(Minecraft client) {
-        this.client = client;
-    }
-
+public record FluidsDebugView(Minecraft client) implements DebugView {
     @Override
     public void clear() {
 
     }
 
+    @SuppressWarnings("UnnecessaryLocalVariable")
     @Override
     public void render(PoseStack pose, MultiBufferSource buffSrc, double cameraX, double cameraY, double cameraZ) {
         assert client.player != null;
@@ -51,17 +46,14 @@ public class FluidsDebugView implements DebugView {
         Matrix4f matrix = pose.last().pose();
         for (BlockPos pos : BlockPos.betweenClosed(playerPos.offset(-8, -8, -8), playerPos.offset(8, 8, 8))) {
             FluidState fluid = world.getFluidState(pos);
-            if (fluid.getAmount() <= 0) continue;
+            if (fluid.getAmount() <= 0) {
+                continue;
+            }
             float fheight = fluid.getHeight(world, pos);
 
             double height = pos.getY() + fheight;
 
-            LevelRenderer.renderLineBox(
-                pose, buff,
-                pos.getX(), pos.getY(), pos.getZ(),
-                pos.getX() + 1, height + 0.01, pos.getZ() + 1,
-                1, 1, 1, 1
-            );
+            LevelRenderer.renderLineBox(pose, buff, pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, height + 0.01, pos.getZ() + 1, 1, 1, 1, 1);
 
             Vec3 flow = fluid.getFlow(world, pos);
             if (fheight < 0.4) {
@@ -75,20 +67,21 @@ public class FluidsDebugView implements DebugView {
             float y2 = y1;
             float z2 = z1 + (float) flow.z * 0.8f;
 
-            buff.vertex(matrix, x1, y1, z1).color(0f, 0f, 1f, 1f).endVertex();
-            buff.vertex(matrix, x2, y2, z2).color(0f, 0f, 1f, 1f).endVertex();
+            try { // TODO
+                buff.vertex(matrix, x1, y1, z1).color(0f, 0f, 1f, 1f).endVertex();
+                buff.vertex(matrix, x2, y2, z2).color(0f, 0f, 1f, 1f).endVertex();
+            } catch (IllegalStateException ignored) {
+            }
         }
 
         pose.popPose();
 
         for (BlockPos pos : BlockPos.betweenClosed(playerPos.offset(-8, -8, -8), playerPos.offset(8, 8, 8))) {
             FluidState fluid = world.getFluidState(pos);
-            if (fluid.getAmount() <= 0) continue;
-            DebugRenderer.renderFloatingText(
-                String.valueOf(fluid.getAmount()),
-                pos.getX() + 0.5, pos.getY() + fluid.getHeight(world, pos), pos.getZ() + 0.5,
-                0xFF000000
-            );
+            if (fluid.getAmount() <= 0) {
+                continue;
+            }
+            DebugRenderer.renderFloatingText(String.valueOf(fluid.getAmount()), pos.getX() + 0.5, pos.getY() + fluid.getHeight(world, pos), pos.getZ() + 0.5, 0xFF000000);
         }
 
         RenderSystem.enableTexture();

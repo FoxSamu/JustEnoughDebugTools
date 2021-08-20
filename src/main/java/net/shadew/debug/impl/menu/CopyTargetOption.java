@@ -38,10 +38,9 @@ public class CopyTargetOption extends ActionOption {
         HitResult target = client.hitResult;
         if (target != null) {
             switch (target.getType()) {
-                case BLOCK:
+                case BLOCK -> {
                     BlockPos pos = ((BlockHitResult) target).getBlockPos();
                     BlockState state = client.level.getBlockState(pos);
-
                     if (copyNbt) {
                         if (server) {
                             client.player.connection.getDebugQueryHandler().queryBlockEntityTag(pos, nbt -> {
@@ -58,8 +57,8 @@ public class CopyTargetOption extends ActionOption {
                         copyBlock(context, state, pos, null);
                         context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_state"));
                     }
-                    break;
-                case ENTITY:
+                }
+                case ENTITY -> {
                     Entity entity = ((EntityHitResult) target).getEntity();
                     ResourceLocation id = Registry.ENTITY_TYPE.getKey(entity.getType());
                     if (copyNbt) {
@@ -77,6 +76,7 @@ public class CopyTargetOption extends ActionOption {
                         copyEntity(context, id, entity.position(), null);
                         context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_location"));
                     }
+                }
             }
 
         }

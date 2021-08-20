@@ -9,9 +9,7 @@ import net.minecraft.client.renderer.RenderType;
 import java.util.SortedMap;
 
 public class DebugBuffers {
-    private final SortedMap<RenderType, BufferBuilder> fixedBuffers = Util.make(new Object2ObjectLinkedOpenHashMap<>(), map -> {
-        map.put(RenderType.LINES, new BufferBuilder(256));
-    });
+    private final SortedMap<RenderType, BufferBuilder> fixedBuffers = Util.make(new Object2ObjectLinkedOpenHashMap<>(), map -> map.put(RenderType.LINES, new BufferBuilder(256)));
 
 
     private final MultiBufferSource.BufferSource bufferSource;

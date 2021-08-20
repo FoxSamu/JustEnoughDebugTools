@@ -33,9 +33,7 @@ public class TestAllPopupScreen extends VerticallyStackedScreen {
         });
         addWidget(runButton);
 
-        cancelButton = new Button(0, 0, 200, 20, CommonComponents.GUI_CANCEL, button -> {
-            onClose();
-        });
+        cancelButton = new Button(0, 0, 200, 20, CommonComponents.GUI_CANCEL, button -> onClose());
         addWidget(cancelButton);
     }
 }

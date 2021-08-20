@@ -13,8 +13,6 @@ public class DebugGameTest implements GameTestInitializer {
     @Override
     public void initializeGameTestServer() throws Exception {
         GlobalTestReporter.replaceWith(new ProperJUnitLikeTestReporter(new File("test_results.xml")));
-        GameTestEvents.TEST_SERVER_DONE.register(server -> {
-            GameTestCIUtil.exportTestWorldAsZip(server, new File("test_world.zip"));
-        });
+        GameTestEvents.TEST_SERVER_DONE.register(server -> GameTestCIUtil.exportTestWorldAsZip(server, new File("test_world.zip")));
     }
 }

@@ -222,7 +222,7 @@ public class DefaultMenuInitializer implements DebugMenuInitializer {
                     "/execute in %s run tp @s %.2f %.2f %.2f %.2f %.2f",
                     player.level.dimension().location(),
                     player.getX(), player.getY(), player.getZ(),
-                    player.xRot, player.yRot
+                    player.getXRot(), player.getYRot()
                 )
             );
         }

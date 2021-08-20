@@ -8,25 +8,15 @@ import net.minecraft.client.renderer.debug.DebugRenderer;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
-public class VanillaDebugView implements DebugView {
-    private final Function<DebugRenderer, DebugRenderer.SimpleDebugRenderer> renderer;
-    private final BooleanSupplier enabled;
-
-    public VanillaDebugView(Function<DebugRenderer, DebugRenderer.SimpleDebugRenderer> renderer, BooleanSupplier enabled) {
-        this.renderer = renderer;
-        this.enabled = enabled;
-    }
-
+public record VanillaDebugView(Function<DebugRenderer, DebugRenderer.SimpleDebugRenderer> renderer, BooleanSupplier enabled) implements DebugView {
     @Override
     public void clear() {
-        renderer.apply(Minecraft.getInstance().debugRenderer)
-                .clear();
+        renderer.apply(Minecraft.getInstance().debugRenderer).clear();
     }
 
     @Override
     public void render(PoseStack pose, MultiBufferSource buffSource, double cameraX, double cameraY, double cameraZ) {
-        renderer.apply(Minecraft.getInstance().debugRenderer)
-                .render(pose, buffSource, cameraX, cameraY, cameraZ);
+        renderer.apply(Minecraft.getInstance().debugRenderer).render(pose, buffSource, cameraX, cameraY, cameraZ);
     }
 
     @Override

@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 
 import net.shadew.debug.command.argument.TestFunctionNameArgument;
 import net.shadew.debug.gui.widgets.CompletableEditBox;
+import net.shadew.debug.mixin.ScreenAccessor;
 
 public class TestImportPopupScreen extends VerticallyStackedScreen {
     private static final TranslatableComponent TITLE = new TranslatableComponent("gui.debug.test_query.import_function");
@@ -36,9 +37,7 @@ public class TestImportPopupScreen extends VerticallyStackedScreen {
         });
         addWidget(exportButton);
 
-        cancelButton = new Button(0, 0, 200, 20, CommonComponents.GUI_CANCEL, button -> {
-            onClose();
-        });
+        cancelButton = new Button(0, 0, 200, 20, CommonComponents.GUI_CANCEL, button -> onClose());
         addWidget(cancelButton);
     }
 
@@ -56,7 +55,7 @@ public class TestImportPopupScreen extends VerticallyStackedScreen {
         super.init();
 
         if (editBox != null) {
-            children.add(suggestionsLayer);
+            ((ScreenAccessor) this).getChildren().add(suggestionsLayer);
             if (!initialized) {
                 editBox.setFocus(true);
                 setFocused(editBox);

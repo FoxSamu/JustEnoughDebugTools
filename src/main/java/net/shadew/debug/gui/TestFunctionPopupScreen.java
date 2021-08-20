@@ -12,6 +12,7 @@ import java.util.function.BiConsumer;
 
 import net.shadew.debug.gui.widgets.CompletableEditBox;
 import net.shadew.debug.gui.widgets.RotationStepsSlider;
+import net.shadew.debug.mixin.ScreenAccessor;
 
 public class TestFunctionPopupScreen extends VerticallyStackedScreen {
     private static final TranslatableComponent TITLE = new TranslatableComponent("gui.debug.test_query.function");
@@ -41,9 +42,7 @@ public class TestFunctionPopupScreen extends VerticallyStackedScreen {
         });
         addWidget(runButton);
 
-        cancelButton = new Button(0, 0, 200, 20, CommonComponents.GUI_CANCEL, button -> {
-            onClose();
-        });
+        cancelButton = new Button(0, 0, 200, 20, CommonComponents.GUI_CANCEL, button -> onClose());
         addWidget(cancelButton);
     }
 
@@ -61,7 +60,7 @@ public class TestFunctionPopupScreen extends VerticallyStackedScreen {
         super.init();
 
         if (editBox != null) {
-            children.add(suggestionsLayer);
+            ((ScreenAccessor) this).getChildren().add(suggestionsLayer);
             if (!initialized) {
                 editBox.setFocus(true);
                 setFocused(editBox);
