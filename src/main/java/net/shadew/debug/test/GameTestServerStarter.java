@@ -80,6 +80,7 @@ public class GameTestServerStarter {
 
             if (!configPath.exists()) {
                 LOGGER.error("Could not find test config file at {}", configPath);
+                System.exit(1);
                 return;
             }
 
@@ -89,6 +90,7 @@ public class GameTestServerStarter {
             if (rtConfig == null) {
                 // GLaDOS is sad now
                 LOGGER.error("Failed to load test config file at {}, cannot continue", configPath);
+                System.exit(1);
                 return;
             }
 
@@ -124,6 +126,7 @@ public class GameTestServerStarter {
             LevelSummary summary = storageAcc.getSummary();
             if (summary != null && summary.isIncompatibleWorldHeight()) {
                 LOGGER.info("Loading of old worlds is temporarily disabled.");
+                System.exit(1);
                 return;
             }
 
@@ -185,6 +188,7 @@ public class GameTestServerStarter {
             } catch (Exception exc) {
                 LOGGER.warn("Failed to load datapacks, can't proceed with test server load", exc);
                 packRepository.close();
+                System.exit(1);
                 return;
             }
 
@@ -244,6 +248,7 @@ public class GameTestServerStarter {
             Runtime.getRuntime().addShutdownHook(shutdownThread);
         } catch (Exception exc) {
             LOGGER.fatal("Failed to start the test server", exc);
+            System.exit(1);
         }
     }
 }
