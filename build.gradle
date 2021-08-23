@@ -56,7 +56,7 @@ if (project.hasProperty("shwMavenUser") && project.hasProperty("shwMavenPass")) 
         repositories {
             maven {
                 name = "ShwMaven"
-                url = uri( "http://maven.shadew.net/" )
+                url = uri( "https://maven.shadew.net/" )
                 credentials {
                     username = shwMavenUser
                     password = shwMavenPass
