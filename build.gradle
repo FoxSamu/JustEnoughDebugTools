@@ -69,17 +69,17 @@ if (project.hasProperty("shwMavenUser") && project.hasProperty("shwMavenPass")) 
 loom {
     runs {
         client {
-            vmArg "-Djedt.test_structures_path=\"${file("gametest/gameteststructures")}\""
+            vmArg "-Djedt.test_structures_path=${file("gametest/gameteststructures")}"
         }
         server {
-            vmArg "-Djedt.test_structures_path=\"${file("gametest/gameteststructures")}\""
+            vmArg "-Djedt.test_structures_path=${file("gametest/gameteststructures")}"
         }
         gametest {
             server()
 
             vmArg "-Djedt.gametest=true"
-            vmArg "\"-Djedt.test_config=${file("gametest/gametest.json")}\""
-            vmArg "\"-Djedt.test_structures_dir=${file("gametest/gameteststructures")}\""
+            vmArg "-Djedt.test_config=${file("gametest/gametest.json")}"
+            vmArg "-Djedt.test_structures_dir=${file("gametest/gameteststructures")}"
 
             serverWithGui() // GameTestServer has no nogui property, this removes it
         }
