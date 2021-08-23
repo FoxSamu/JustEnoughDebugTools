@@ -8,6 +8,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -18,82 +19,91 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
+// Works with GitHub Actions JUnit reporter action
 public class ProperJUnitLikeTestReporter implements TestReporter {
-   private final Document document;
-   private final Element testSuite;
-   private final Stopwatch stopwatch;
-   private final File destination;
-   private int failures;
-   private int skips;
-   private int successes;
+    private final Document document;
+    private final Element testSuite;
+    private final Stopwatch stopwatch;
+    private final File destination;
+    private int failures;
+    private int skips;
+    private int successes;
 
-   public ProperJUnitLikeTestReporter(File file) throws ParserConfigurationException {
-      this.destination = file;
-      this.document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-      this.testSuite = this.document.createElement("testsuite");
-      Element element = this.document.createElement("testsuites");
-      element.appendChild(this.testSuite);
-      this.document.appendChild(element);
-      this.testSuite.setAttribute("timestamp", DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
-      this.stopwatch = Stopwatch.createStarted();
-   }
+    public ProperJUnitLikeTestReporter(File dest) throws ParserConfigurationException {
+        this.destination = dest;
+        this.document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        this.testSuite = document.createElement("testsuite");
 
-   private Element createTestCase(GameTestInfo gameTestInfo, String string) {
-      Element element = this.document.createElement("testcase");
-      element.setAttribute("name", string);
-      element.setAttribute("classname", gameTestInfo.getStructureName());
-      element.setAttribute("time", String.valueOf((double) gameTestInfo.getRunTime() / 1000.0D));
-      this.testSuite.appendChild(element);
-      return element;
-   }
+        Element testSuites = document.createElement("testsuites");
+        testSuites.appendChild(testSuite);
+        document.appendChild(testSuites);
 
-   @SuppressWarnings("ConstantConditions")
-   @Override
-   public void onTestFailed(GameTestInfo gameTestInfo) {
-      String string = gameTestInfo.getTestName();
-      String string2 = gameTestInfo.getError().getMessage();
-      Element failureElement;
-      if (gameTestInfo.isRequired()) {
-         failures++;
-         failureElement = this.document.createElement("failure");
-      } else {
-         skips++;
-         failureElement = this.document.createElement("skipped");
-      }
-      failureElement.setAttribute("message", string2);
+        testSuite.setAttribute("timestamp", DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
+        stopwatch = Stopwatch.createStarted();
+    }
 
-      Element element3 = this.createTestCase(gameTestInfo, string);
-      element3.appendChild(failureElement);
-   }
+    private Element createTestCase(GameTestInfo testInfo, String string) {
+        Element testCase = document.createElement("testcase");
+        testCase.setAttribute("name", string);
+        testCase.setAttribute("classname", testInfo.getStructureName());
+        testCase.setAttribute("time", String.valueOf(testInfo.getRunTime() / 1000d));
+        testSuite.appendChild(testCase);
+        return testCase;
+    }
 
-   @Override
-   public void onTestSuccess(GameTestInfo gameTestInfo) {
-      successes++;
-      String string = gameTestInfo.getTestName();
-      this.createTestCase(gameTestInfo, string);
-   }
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public void onTestFailed(GameTestInfo testInfo) {
+        String name = testInfo.getTestName();
+        String errorMsg = testInfo.getError().getMessage();
 
-   @Override
-   public void finish() {
-      this.stopwatch.stop();
-      this.testSuite.setAttribute("tests", "" + (successes + failures + skips));
-      this.testSuite.setAttribute("name", "root");
-      this.testSuite.setAttribute("failures", "" + failures);
-      this.testSuite.setAttribute("skipped", "" + skips);
-      this.testSuite.setAttribute("time", String.valueOf((double) this.stopwatch.elapsed(TimeUnit.MILLISECONDS) / 1000.0D));
+        Element failure; // "I'm a failure :("
+        if (testInfo.isRequired()) {
+            failures++;
+            failure = document.createElement("failure");
+        } else {
+            skips++;
+            failure = document.createElement("skipped");
+        }
+        failure.setAttribute("message", errorMsg);
 
-      try {
-         this.save(this.destination);
-      } catch (TransformerException var2) {
-         throw new Error("Couldn't save test report", var2);
-      }
-   }
+        Element testCase = createTestCase(testInfo, name);
+        testCase.appendChild(failure);
+    }
 
-   public void save(File file) throws TransformerException {
-      TransformerFactory transformerFactory = TransformerFactory.newInstance();
-      Transformer transformer = transformerFactory.newTransformer();
-      DOMSource dOMSource = new DOMSource(this.document);
-      StreamResult streamResult = new StreamResult(file);
-      transformer.transform(dOMSource, streamResult);
-   }
+    @Override
+    public void onTestSuccess(GameTestInfo testInfo) {
+        successes++;
+        String testName = testInfo.getTestName();
+        createTestCase(testInfo, testName);
+    }
+
+    @Override
+    public void finish() {
+        stopwatch.stop();
+
+        testSuite.setAttribute("tests", "" + (failures + skips + successes));
+        testSuite.setAttribute("name", "root");
+        testSuite.setAttribute("failures", "" + failures);
+        testSuite.setAttribute("skipped", "" + skips);
+        testSuite.setAttribute("time", String.valueOf(stopwatch.elapsed(TimeUnit.MILLISECONDS) / 1000d));
+
+        try {
+            save(destination);
+        } catch (TransformerException exc) {
+            throw new Error("Couldn't save test report", exc);
+        }
+    }
+
+    public void save(File file) throws TransformerException {
+        TransformerFactory factory = TransformerFactory.newInstance();
+
+        Transformer transformer = factory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+
+        DOMSource source = new DOMSource(document);
+        StreamResult result = new StreamResult(file);
+        transformer.transform(source, result);
+    }
 }

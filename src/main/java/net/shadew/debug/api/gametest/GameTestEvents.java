@@ -4,9 +4,10 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.gametest.framework.GameTestInfo;
 import net.minecraft.gametest.framework.GameTestListener;
-import net.minecraft.gametest.framework.GameTestServer;
+import net.minecraft.server.MinecraftServer;
 
 public interface GameTestEvents {
+    @Deprecated // For internal use only
     GameTestListener TEST_LISTENER = new GameTestListener() {
         @Override
         public void testStructureLoaded(GameTestInfo gameTestInfo) {
@@ -70,6 +71,6 @@ public interface GameTestEvents {
     }
 
     interface TestServerDone {
-        void onTestServerDone(GameTestServer server);
+        void onTestServerDone(MinecraftServer server);
     }
 }

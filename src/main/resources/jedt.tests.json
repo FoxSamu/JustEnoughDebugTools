@@ -1,0 +1,5 @@
+{
+  "tests": [
+    "net.shadew.debug.test.DebugTests"
+  ]
+}

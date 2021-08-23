@@ -11,8 +11,8 @@ import java.util.function.IntConsumer;
 import net.shadew.debug.gui.widgets.RotationStepsSlider;
 
 public class TestAllPopupScreen extends VerticallyStackedScreen {
-    private static final TranslatableComponent TITLE = new TranslatableComponent("gui.debug.test_query.all");
-    private static final TranslatableComponent RUN_BUTTON_TEXT = new TranslatableComponent("gui.debug.test_query.run");
+    private static final TranslatableComponent TITLE = new TranslatableComponent("gui.jedt.test_query.all");
+    private static final TranslatableComponent RUN_BUTTON_TEXT = new TranslatableComponent("gui.jedt.test_query.run");
 
     private RotationStepsSlider rotationSteps;
     private Button runButton;

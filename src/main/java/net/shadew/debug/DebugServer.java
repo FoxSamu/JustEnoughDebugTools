@@ -16,7 +16,7 @@ public class DebugServer implements DedicatedServerModInitializer {
     @Override
     public void onInitializeServer() {
         EntrypointUtils.invoke(
-            "debug:server", DebugServerInitializer.class,
+            "jedt:server", DebugServerInitializer.class,
             init -> init.onInitializeDebugServer(Debug.serverDebugStatus)
         );
 

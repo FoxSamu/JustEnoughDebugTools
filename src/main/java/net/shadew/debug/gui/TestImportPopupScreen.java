@@ -14,8 +14,8 @@ import net.shadew.debug.gui.widgets.CompletableEditBox;
 import net.shadew.debug.mixin.ScreenAccessor;
 
 public class TestImportPopupScreen extends VerticallyStackedScreen {
-    private static final TranslatableComponent TITLE = new TranslatableComponent("gui.debug.test_query.import_function");
-    private static final TranslatableComponent IMPORT_BUTTON_TEXT = new TranslatableComponent("gui.debug.test_query.import");
+    private static final TranslatableComponent TITLE = new TranslatableComponent("gui.jedt.test_query.import_function");
+    private static final TranslatableComponent IMPORT_BUTTON_TEXT = new TranslatableComponent("gui.jedt.test_query.import");
 
     private CompletableEditBox<?> editBox;
     private Button exportButton;

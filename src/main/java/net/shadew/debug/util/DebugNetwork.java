@@ -13,8 +13,8 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import net.shadew.debug.impl.status.ServerDebugStatusImpl;
 
 public class DebugNetwork implements ModInitializer {
-    public static final ResourceLocation GAME_RULES_PACKET_ID = new ResourceLocation("debug:game_rules");
-    public static final ResourceLocation SERVER_STATUS_PACKET_ID = new ResourceLocation("debug:server_status");
+    public static final ResourceLocation GAME_RULES_PACKET_ID = new ResourceLocation("jedt:game_rules");
+    public static final ResourceLocation SERVER_STATUS_PACKET_ID = new ResourceLocation("jedt:server_status");
 
     @Override
     public void onInitialize() {

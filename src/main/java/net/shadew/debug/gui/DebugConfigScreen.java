@@ -8,7 +8,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
-import net.shadew.debug.mixin.ScreenAccessor;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL32;
 
@@ -18,6 +17,7 @@ import java.util.function.IntConsumer;
 
 import net.shadew.debug.DebugClient;
 import net.shadew.debug.api.menu.*;
+import net.shadew.debug.mixin.ScreenAccessor;
 
 public class DebugConfigScreen extends Screen {
     public static final DebugConfigScreen INSTANCE = new DebugConfigScreen();
@@ -30,7 +30,7 @@ public class DebugConfigScreen extends Screen {
     private boolean pauses;
 
     public DebugConfigScreen() {
-        super(new TranslatableComponent("debug.options"));
+        super(new TranslatableComponent("jedt.options"));
     }
 
     @Override

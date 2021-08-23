@@ -22,62 +22,62 @@ public interface DebugMenu {
     /**
      * The identifier of the root menu: the first menu that appears when opening the debug menu screen.
      */
-    ResourceLocation ROOT = new ResourceLocation("debug:root");
+    ResourceLocation ROOT = new ResourceLocation("jedt:root");
 
     /**
      * The identifier of the 'Quick Commands' menu.
      */
-    ResourceLocation COMMANDS = new ResourceLocation("debug:commands");
+    ResourceLocation COMMANDS = new ResourceLocation("jedt:commands");
 
     /**
      * The identifier of the 'Time' menu in the 'Quick Commands' menu.
      */
-    ResourceLocation TIME_COMMANDS = new ResourceLocation("debug:time_commands");
+    ResourceLocation TIME_COMMANDS = new ResourceLocation("jedt:time_commands");
 
     /**
      * The identifier of the 'Game Mode' menu in the 'Quick Commands' menu.
      */
-    ResourceLocation GAMEMODE_COMMANDS = new ResourceLocation("debug:gamemode_commands");
+    ResourceLocation GAMEMODE_COMMANDS = new ResourceLocation("jedt:gamemode_commands");
 
     /**
      * The identifier of the 'Weather' menu in the 'Quick Commands' menu.
      */
-    ResourceLocation WEATHER_COMMANDS = new ResourceLocation("debug:weather_commands");
+    ResourceLocation WEATHER_COMMANDS = new ResourceLocation("jedt:weather_commands");
 
     /**
      * The identifier of the 'Difficulty' menu in the 'Quick Commands' menu.
      */
-    ResourceLocation DIFFICULTY_COMMANDS = new ResourceLocation("debug:difficulty_commands");
+    ResourceLocation DIFFICULTY_COMMANDS = new ResourceLocation("jedt:difficulty_commands");
 
     /**
      * The identifier of the 'Random Ticks' menu in the 'Quick Commands' menu.
      */
-    ResourceLocation TICK_SPEED_COMMANDS = new ResourceLocation("debug:tick_speed_commands");
+    ResourceLocation TICK_SPEED_COMMANDS = new ResourceLocation("jedt:tick_speed_commands");
 
     /**
      * The identifier of the 'Misc' menu in the 'Quick Commands' menu.
      */
-    ResourceLocation MISC_COMMANDS = new ResourceLocation("debug:misc_commands");
+    ResourceLocation MISC_COMMANDS = new ResourceLocation("jedt:misc_commands");
 
     /**
      * The identifier of the 'Actions' menu.
      */
-    ResourceLocation ACTIONS = new ResourceLocation("debug:actions");
+    ResourceLocation ACTIONS = new ResourceLocation("jedt:actions");
 
     /**
      * The identifier of the 'Copy' menu.
      */
-    ResourceLocation COPY = new ResourceLocation("debug:copy");
+    ResourceLocation COPY = new ResourceLocation("jedt:copy");
 
     /**
      * The identifier of the 'Display' menu.
      */
-    ResourceLocation DISPLAY = new ResourceLocation("debug:display");
+    ResourceLocation DISPLAY = new ResourceLocation("jedt:display");
 
     /**
      * The identifier of the 'GameTest' menu.
      */
-    ResourceLocation GAMETEST = new ResourceLocation("debug:gametest");
+    ResourceLocation GAMETEST = new ResourceLocation("jedt:gametest");
 
     /**
      * Returns a {@link Component} to display in the header of this menu. By default, this is a {@link

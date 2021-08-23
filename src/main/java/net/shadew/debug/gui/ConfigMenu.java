@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 import net.shadew.debug.api.menu.DebugOption;
 
 public class ConfigMenu extends GuiComponent implements GuiEventListener {
-    private static final ResourceLocation TEXTURE = new ResourceLocation("debug:textures/gui/options.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation("jedt:textures/gui/options.png");
     public static final int MENU_WIDTH = 128;
     public static final int ITEM_HEIGHT = 20;
     private static final int TOP_PADDING = ITEM_HEIGHT / 2 - 4;

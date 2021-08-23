@@ -1,6 +1,6 @@
 package net.shadew.debug.api.gametest;
 
-import net.minecraft.gametest.framework.GameTestServer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -16,8 +16,7 @@ import java.util.zip.ZipOutputStream;
 public class GameTestCIUtil {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static void exportTestWorldAsZip(GameTestServer server, File outputFile) {
+    public static void exportTestWorldAsZip(MinecraftServer server, File outputFile) {
         Path path = server.getWorldPath(LevelResource.ROOT).toAbsolutePath();
         outputFile.getAbsoluteFile().getParentFile().mkdirs();
 

@@ -12,12 +12,10 @@ import net.minecraft.DefaultUncaughtExceptionHandler;
 import net.minecraft.SharedConstants;
 import net.minecraft.Util;
 import net.minecraft.commands.Commands;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.gametest.framework.GameTestBatch;
 import net.minecraft.gametest.framework.GameTestRegistry;
-import net.minecraft.gametest.framework.GameTestRunner;
-import net.minecraft.gametest.framework.GameTestServer;
+import net.minecraft.gametest.framework.GlobalTestReporter;
+import net.minecraft.gametest.framework.StructureUtils;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerResources;
@@ -34,7 +32,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.util.Collection;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -56,37 +54,67 @@ public class GameTestServerStarter {
      * I know exactly what I'm doing here.
      */
     @SuppressWarnings("deprecation")
-    public static void startServer(String[] strings, String mod) {
+    public static void startServer(String[] args, String config) {
+        SharedConstants.tryDetectVersion();
+
         OptionParser optionParser = new OptionParser();
         OptionSpec<Void> helpSpec = optionParser.accepts("help").forHelp();
         OptionSpec<String> worldSpec = optionParser.accepts("world").withRequiredArg();
 
         try {
-            OptionSet options = optionParser.parse(strings);
+            OptionSet options = optionParser.parse(args);
             if (options.has(helpSpec)) {
                 optionParser.printHelpOn(System.err);
                 return;
             }
 
-            // Find mod that was asked for testing
-            Optional<ModContainer> optContainer = FabricLoader.INSTANCE.getModContainer(mod);
-            if (optContainer.isEmpty()) {
-                throw new RuntimeException("No mod container found with ID: " + mod);
+
+            /*
+             * Load configuration
+             */
+
+            // Load config
+            File universe = new File(".");
+            File configPath = universe.toPath().resolve(config).toFile();
+
+            if (!configPath.exists()) {
+                LOGGER.error("Could not find test config file at {}", configPath);
+                return;
             }
 
-            ModContainer container = optContainer.get();
+            LOGGER.info("Loading test server configuration from {}", configPath);
 
-            // Pre-load
+            RuntimeTestConfig rtConfig = GameTestIntegration.loadRuntimeTestConfig(configPath);
+            if (rtConfig == null) {
+                // GLaDOS is sad now
+                LOGGER.error("Failed to load test config file at {}, cannot continue", configPath);
+                return;
+            }
+
+            // Load mod configs
+            for (ModContainer container : FabricLoader.INSTANCE.getAllMods()) {
+                if (rtConfig.includesMod(container.getMetadata().getId())) {
+                    ModTestConfig modConfig = GameTestIntegration.loadModTestConfig(container);
+                    if (modConfig == null) {
+                        LOGGER.error("Failed to load jedt.tests.json in mod {}", container.getMetadata().getId());
+                    }
+                    rtConfig.addModConfig(modConfig);
+                }
+            }
+
+            /*
+             * Pre-load server
+             */
             CrashReport.preload();
             Bootstrap.bootStrap();
             Bootstrap.validate();
-            //Util.startTimerHackThread();
+            // Util.startTimerHackThread();
 
             RegistryAccess.RegistryHolder registries = RegistryAccess.builtin();
 
-            File universe = new File(".");
-
-            // Level
+            /*
+             * Setup level
+             */
             String levelName = Optional.ofNullable(options.valueOf(worldSpec)).orElse("gametestworld");
             LevelStorageSource storageSrc = LevelStorageSource.createDefault(universe.toPath());
             LevelStorageSource.LevelStorageAccess storageAcc = storageSrc.createAccess(levelName);
@@ -98,54 +126,105 @@ public class GameTestServerStarter {
                 return;
             }
 
+            /*
+             * Initiate mods
+             */
+
             // This is the moment we start to load data packs, we must now load mods.
             // We don't have a game instance yet, we set this at the end.
             EntrypointServer.start(null, null);
 
-            // Only call the entrypoints that are part of the selected mod
+            // Only call the game test entrypoints that are part of the selected mod
             List<EntrypointContainer<GameTestInitializer>> entrypointContainers
                 = FabricLoader.INSTANCE.getEntrypointContainers("debug:gametest", GameTestInitializer.class);
 
             for (EntrypointContainer<GameTestInitializer> ep : entrypointContainers) {
-                if (ep.getProvider() == container) {
+                if (rtConfig.getModConfig(ep.getProvider().getMetadata().getId()) != null) {
                     ep.getEntrypoint().initializeGameTestServer();
                 }
             }
 
-            // Load data packs
+            /*
+             * Load datapacks
+             */
+            Optional<Path> dataPacksPath = rtConfig.getDatapacksPath(universe.toPath());
+
             DataPackConfig dataPacks = storageAcc.getDataPacks();
-            PackRepository packRepository = new PackRepository(
-                PackType.SERVER_DATA,
-                new ServerPacksSource(),
-                new FolderRepositorySource(storageAcc.getLevelPath(LevelResource.DATAPACK_DIR).toFile(), PackSource.WORLD)
+            PackRepository packRepository = dataPacksPath.map(
+                path -> new PackRepository(
+                    PackType.SERVER_DATA,
+                    new ServerPacksSource(),
+                    new FolderRepositorySource(path.toFile(), PackSource.SERVER),
+                    new FolderRepositorySource(storageAcc.getLevelPath(LevelResource.DATAPACK_DIR).toFile(), PackSource.WORLD)
+                )
+            ).orElseGet(
+                () -> new PackRepository(
+                    PackType.SERVER_DATA,
+                    new ServerPacksSource(),
+                    new FolderRepositorySource(storageAcc.getLevelPath(LevelResource.DATAPACK_DIR).toFile(), PackSource.WORLD)
+                )
             );
-            DataPackConfig configuredDataPacks = MinecraftServer.configurePackRepository(packRepository, dataPacks == null ? DataPackConfig.DEFAULT : dataPacks, false);
-            CompletableFuture<ServerResources> resourcesFuture = ServerResources.loadResources(packRepository.openAllSelected(), registries, Commands.CommandSelection.DEDICATED, 2 /* function permission level */, Util.backgroundExecutor(), Runnable::run);
+            MinecraftServer.configurePackRepository(
+                packRepository,
+                dataPacks == null ? DataPackConfig.DEFAULT : dataPacks,
+                false // Clean datapacks
+            );
+            CompletableFuture<ServerResources> resourcesFuture = ServerResources.loadResources(
+                packRepository.openAllSelected(),
+                registries,
+                Commands.CommandSelection.DEDICATED,
+                2, // Function permission level
+                Util.backgroundExecutor(),
+                Runnable::run
+            );
 
             ServerResources resources;
             try {
                 resources = resourcesFuture.get();
             } catch (Exception exc) {
-                LOGGER.warn("Failed to load datapacks, can't proceed with server load", exc);
+                LOGGER.warn("Failed to load datapacks, can't proceed with test server load", exc);
                 packRepository.close();
                 return;
             }
 
             resources.updateGlobals();
 
-            // Just in case
+            /*
+             * Setup GameTest
+             */
+
+            // This is needed for the server to run the tests
             SharedConstants.IS_RUNNING_IN_IDE = true;
+            Path serverDir = universe.toPath();
 
-            Collection<GameTestBatch> batches = GameTestRunner.groupTestsIntoBatches(GameTestRegistry.getAllTestFunctions());
+            // Set test structures directory
+            rtConfig.getTestStructuresPath(serverDir)
+                    .ifPresent(path -> StructureUtils.testStructuresDir = path.toString());
 
-            GameTestServer server = MinecraftServer.spin(threadx -> {
-                GameTestServer serverInst = new GameTestServer(
-                    threadx,
+            // Initiate TestReporter
+            GlobalTestReporter.replaceWith(rtConfig.instantiateReporter(serverDir));
+
+            // Register methods
+            String[] sets = rtConfig.getAllModSets()
+                                    .filter(rtConfig::includesSet)
+                                    .distinct()
+                                    .toArray(String[]::new);
+            rtConfig.getAllTestMethods(sets)
+                    .forEach(GameTestRegistry::register);
+
+            /*
+             * Start the server
+             */
+            LOGGER.info("Starting JEDT game test server");
+
+            DebugGameTestServer server = MinecraftServer.spin(thread -> {
+                DebugGameTestServer serverInst = new DebugGameTestServer(
+                    thread,
+                    universe,
                     storageAcc,
                     packRepository,
                     resources,
-                    batches,
-                    new BlockPos(0, 4, 0),
+                    rtConfig,
                     registries
                 );
 
@@ -155,7 +234,7 @@ public class GameTestServerStarter {
             // Set the game instance, we must do this here since we had no game instance at modloading time
             // Yes this deprecated and not to be called anywhere else than from the dedicated server ...
             //
-            // ... but we are the server now :)
+            // ... but we are the dedicated server now :D
             FabricLoader.INSTANCE.setGameInstance(server);
 
             Thread shutdownThread = new Thread(() -> server.halt(true));

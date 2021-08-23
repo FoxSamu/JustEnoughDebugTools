@@ -32,7 +32,7 @@ import net.shadew.debug.mixin.EditBoxAccessor;
 
 public class CompletableEditBox<T> extends EditBox {
     private static final SimpleCommandExceptionType EXTRA_INPUT = new SimpleCommandExceptionType(
-        new TranslatableComponent("debug.misc.extra_input_error")
+        new TranslatableComponent("misc.jedtextra_input_error")
     );
 
     private final SuggestionsLayer suggestionsLayer;

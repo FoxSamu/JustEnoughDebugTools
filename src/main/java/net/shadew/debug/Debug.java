@@ -2,6 +2,8 @@ package net.shadew.debug;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.minecraft.gametest.framework.GameTestRegistry;
 import net.minecraft.gametest.framework.StructureUtils;
@@ -14,6 +16,9 @@ import net.shadew.debug.impl.status.ServerDebugStatusImpl;
 import net.shadew.debug.test.DebugTests;
 
 public class Debug implements ModInitializer {
+    public static final boolean GAMETEST = Boolean.parseBoolean(System.getProperty("jedt.gametest"));
+    public static final boolean UWU = Boolean.parseBoolean(System.getProperty("jedt.uwu"));
+
     public static final Logger LOGGER = LogManager.getLogger();
 
     private static ServerDebugStatusImpl.Builder serverDebugStatusBuilder;
@@ -24,15 +29,20 @@ public class Debug implements ModInitializer {
         // Enable GameTest
         // SharedConstants.IS_RUNNING_IN_IDE = true;
 
+        // ... but that's a mixin now
+
         GameTestRegistry.register(DebugTests.class);
 
         serverDebugStatus = createStatusInstance();
-        String testStructuresDir = System.getProperty("jedt.test_structures_path");
-        if (testStructuresDir != null)
-            StructureUtils.testStructuresDir = testStructuresDir;
+
+        if (!GAMETEST) {
+            String testStructuresDir = System.getProperty("jedt.test_structures_path");
+            if (testStructuresDir != null)
+                StructureUtils.testStructuresDir = testStructuresDir;
+        }
 
         EntrypointUtils.invoke(
-            "debug:main", DebugInitializer.class,
+            "jedt:main", DebugInitializer.class,
             init -> init.onInitializeDebug(serverDebugStatus)
         );
 
@@ -41,6 +51,11 @@ public class Debug implements ModInitializer {
                 serverDebugStatus.resetAll();
             }
         });
+
+        FabricLoader.getInstance().getAllMods().forEach(container -> {
+            ModMetadata meta = container.getMetadata();
+            container.getPath("jedt.tests.json");
+        });
     }
 
     public static ServerDebugStatusImpl createStatusInstance() {
@@ -48,7 +63,7 @@ public class Debug implements ModInitializer {
             serverDebugStatusBuilder = new ServerDebugStatusImpl.Builder();
             new DefaultStatusInitializer().onInitializeDebugStatus(serverDebugStatusBuilder);
             EntrypointUtils.invoke(
-                "debug:status", DebugStatusInitializer.class,
+                "jedt:status", DebugStatusInitializer.class,
                 init -> init.onInitializeDebugStatus(serverDebugStatusBuilder)
             );
         }

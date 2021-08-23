@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "debug",
+  "id": "jedt",
   "version": "${version}",
 
   "name": "Just Enough Debug Tools",
@@ -9,7 +9,7 @@
   "contact": { },
 
   "license": "Apache-2.0",
-  "icon": "assets/debug/icon.png",
+  "icon": "assets/jedt/icon.png",
 
   "environment": "*",
   "entrypoints": {
@@ -22,13 +22,13 @@
       "net.shadew.debug.Debug",
       "net.shadew.debug.util.DebugNetwork"
     ],
-    "debug:gametest": [
+    "jedt:gametest": [
       "net.shadew.debug.DebugGameTest"
     ]
   },
 
   "mixins": [
-    "debug.mixins.json"
+    "jedt.mixins.json"
   ],
 
   "depends": {

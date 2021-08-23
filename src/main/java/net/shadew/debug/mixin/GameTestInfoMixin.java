@@ -11,6 +11,7 @@ import net.shadew.debug.api.gametest.GameTestEvents;
 @Mixin(GameTestInfo.class)
 public class GameTestInfoMixin {
     @Inject(method = "<init>", at = @At("RETURN"))
+    @SuppressWarnings("deprecation")
     private void constructorHook(CallbackInfo info) {
         GameTestInfo.class.cast(this).addListener(GameTestEvents.TEST_LISTENER);
     }

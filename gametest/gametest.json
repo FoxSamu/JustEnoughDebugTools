@@ -1,0 +1,5 @@
+{
+  "test_structures_dir": "[jedt.test_structures_dir]",
+  "reporter": { "jedt:junit": "./test_results.xml" },
+  "export": "test_world.zip"
+}

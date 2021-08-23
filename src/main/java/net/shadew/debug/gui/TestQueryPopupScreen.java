@@ -17,7 +17,7 @@ import net.shadew.debug.gui.widgets.RotationStepsSlider;
 import net.shadew.debug.mixin.ScreenAccessor;
 
 public class TestQueryPopupScreen extends VerticallyStackedScreen {
-    private static final TranslatableComponent RUN_BUTTON_TEXT = new TranslatableComponent("gui.debug.test_query.run");
+    private static final TranslatableComponent RUN_BUTTON_TEXT = new TranslatableComponent("gui.jedt.test_query.run");
 
     private final Type type;
     private final BiConsumer<String, Integer> handler;

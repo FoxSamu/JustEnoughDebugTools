@@ -41,12 +41,12 @@ public class DebugClient implements ClientModInitializer {
 
         reloadMenus();
         EntrypointUtils.invoke(
-            "debug:client", DebugClientInitializer.class,
+            "jedt:client", DebugClientInitializer.class,
             init -> init.onInitializeDebugClient(serverDebugStatus)
         );
 
         KeyBindingHelper.registerKeyBinding(
-            debugOptionsKey = new KeyMapping("key.debug.options", GLFW.GLFW_KEY_F6, "key.categories.misc")
+            debugOptionsKey = new KeyMapping("key.jedt.options", GLFW.GLFW_KEY_F6, "key.categories.misc")
         );
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
@@ -72,7 +72,7 @@ public class DebugClient implements ClientModInitializer {
         MENU_MANAGER.clearAll();
         new DefaultMenuInitializer().onInitializeDebugMenu(ROOT_MENU, MENU_MANAGER, serverDebugStatus);
         EntrypointUtils.invoke(
-            "debug:menu", DebugMenuInitializer.class,
+            "jedt:menu", DebugMenuInitializer.class,
             init -> init.onInitializeDebugMenu(ROOT_MENU, MENU_MANAGER, serverDebugStatus)
         );
     }
