@@ -19,7 +19,7 @@ public class RotationStepsSlider extends AbstractSliderButton {
 
     @Override
     protected void updateMessage() {
-        setMessage(new TranslatableComponent("gui.debug.test_query.rotation_steps", rot));
+        setMessage(new TranslatableComponent("gui.jedt.test_query.rotation_steps", rot));
     }
 
     @Override

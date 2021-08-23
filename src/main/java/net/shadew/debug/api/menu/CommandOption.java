@@ -38,7 +38,7 @@ public class CommandOption extends ActionOption {
     public void onClick(OptionSelectContext context) {
         if (!context.hasPermissionLevel(2)) {
             context.spawnResponse(
-                new TranslatableComponent("debug.options.debug.commands.no_permission")
+                new TranslatableComponent("debug.options.jedt.commands.no_permission")
                     .withStyle(ChatFormatting.RED)
             );
             return;

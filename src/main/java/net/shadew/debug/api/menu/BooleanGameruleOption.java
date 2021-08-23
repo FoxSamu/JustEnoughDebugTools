@@ -41,7 +41,7 @@ public class BooleanGameruleOption extends BooleanOption {
     protected void toggle(OptionSelectContext context) {
         if (!context.hasPermissionLevel(2)) {
             context.spawnResponse(
-                new TranslatableComponent("debug.options.debug.commands.no_permission")
+                new TranslatableComponent("debug.options.jedt.commands.no_permission")
                     .withStyle(ChatFormatting.RED)
             );
             return;

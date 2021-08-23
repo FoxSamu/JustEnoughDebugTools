@@ -11,7 +11,7 @@ import net.shadew.debug.api.menu.DebugMenu;
 import net.shadew.debug.api.menu.DebugMenuManager;
 
 public class DebugMenuManagerImpl implements DebugMenuManager {
-    public static final ResourceLocation ROOT = new ResourceLocation("debug:root");
+    public static final ResourceLocation ROOT = new ResourceLocation("jedt:root");
 
     private final HashMap<ResourceLocation, DebugMenuImpl> menuInstances = new HashMap<>();
 

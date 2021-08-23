@@ -45,17 +45,17 @@ public class CopyTargetOption extends ActionOption {
                         if (server) {
                             client.player.connection.getDebugQueryHandler().queryBlockEntityTag(pos, nbt -> {
                                 copyBlock(context, state, pos, nbt);
-                                context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_server_block"));
+                                context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_server_block"));
                             });
                         } else {
                             BlockEntity be = client.level.getBlockEntity(pos);
                             CompoundTag nbt = be != null ? be.save(new CompoundTag()) : null;
                             copyBlock(context, state, pos, nbt);
-                            context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_block"));
+                            context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_client_block"));
                         }
                     } else {
                         copyBlock(context, state, pos, null);
-                        context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_state"));
+                        context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_client_state"));
                     }
                 }
                 case ENTITY -> {
@@ -65,16 +65,16 @@ public class CopyTargetOption extends ActionOption {
                         if (server) {
                             client.player.connection.getDebugQueryHandler().queryEntityTag(entity.getId(), nbt -> {
                                 copyEntity(context, id, entity.position(), nbt);
-                                context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_server_entity"));
+                                context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_server_entity"));
                             });
                         } else {
                             CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
                             copyEntity(context, id, entity.position(), nbt);
-                            context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_entity"));
+                            context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_client_entity"));
                         }
                     } else {
                         copyEntity(context, id, entity.position(), null);
-                        context.spawnResponse(new TranslatableComponent("debug.options.debug.copy_targeted.response_client_location"));
+                        context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_client_location"));
                     }
                 }
             }

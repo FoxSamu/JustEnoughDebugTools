@@ -1,16 +1,13 @@
 package net.shadew.debug.mixin;
 
 import net.minecraft.gametest.framework.GameTestInfo;
-import net.minecraft.gametest.framework.GameTestListener;
 import net.minecraft.world.level.block.Block;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("InvalidInjectorMethodSignature")
@@ -25,19 +22,22 @@ public class ReportGameListenerMixin {
      * Since this is one of the listeners of GameTestListener, we are supplied an actual, non-null GameTestInfo
      * instance. Any other implemented listener method in ReportGameListener uses that parameter, so let's solve this
      * inconsistency by redirecting the usage of that field and using the passed parameter instead.
+     *
+     * Disabled for now: somehow Mixin AP fails to generate the proper refmap mapping
      */
-    @Redirect(
-        method = "testStructureLoaded",
-        at = @At(
-            value = "FIELD",
-            target = "Lnet/minecraft/gametest/framework/ReportGameListener;" +
-                         "originalTestInfo:Lnet/minecraft/gametest/framework/GameTestInfo;",
-            opcode = Opcodes.GETFIELD
-        )
-    )
-    private GameTestInfo redirectOriginalTestInfo(@Coerce GameTestListener instance, GameTestInfo testInfo) {
-        return testInfo;
-    }
+//    @Redirect(
+//        method = "testStructureLoaded",
+//        at = @At(
+//            value = "FIELD",
+//            target = "Lnet/minecraft/gametest/framework/ReportGameListener;" +
+//                         "originalTestInfo:Lnet/minecraft/gametest/framework/GameTestInfo;",
+//            opcode = Opcodes.GETFIELD
+//        )
+//    )
+//    private GameTestInfo redirectOriginalTestInfo(@Coerce GameTestListener instance, GameTestInfo testInfo) {
+//        System.out.println("injection correct");
+//        return testInfo;
+//    }
 
     @Inject(method = {"spawnBeacon", "spawnLectern"}, at = @At("HEAD"), cancellable = true)
     private static void handleSpawnBeacon(GameTestInfo info, @Coerce Object v, CallbackInfo callback) {

@@ -68,6 +68,6 @@ public abstract class NumberOption extends AbstractDebugOption {
      */
     @Override
     public Component getDisplayValue() {
-        return new TranslatableComponent("debug.options.debug.default_number", get()).withStyle(ChatFormatting.YELLOW);
+        return new TranslatableComponent("debug.options.jedt.default_number", get()).withStyle(ChatFormatting.YELLOW);
     }
 }
