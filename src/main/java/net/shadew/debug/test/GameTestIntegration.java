@@ -103,6 +103,7 @@ public class GameTestIntegration {
         }
 
         // Dimension to test in
+        // TODO NYI
         if (obj.has("dimension")) {
             config.setDimension(obj.get("dimension").getAsString());
         }

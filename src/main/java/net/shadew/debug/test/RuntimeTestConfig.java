@@ -107,10 +107,12 @@ public class RuntimeTestConfig {
         return Optional.of(PathUtil.resolve(serverDir, testStructuresPath));
     }
 
+    @Deprecated // NYI
     public void setDimension(String dimension) {
         this.dimension = dimension;
     }
 
+    @Deprecated // NYI
     public String getDimension() {
         return dimension;
     }
