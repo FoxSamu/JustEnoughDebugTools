@@ -8,7 +8,6 @@ import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.gametest.framework.TestFunction;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.Reader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -31,9 +30,8 @@ public class GameTestIntegration {
     // RUNTIME TEST CONFIG
     //
 
-    public static RuntimeTestConfig loadRuntimeTestConfig(File configFile) {
+    public static RuntimeTestConfig loadRuntimeTestConfig(Path path) {
         RuntimeTestConfig config = new RuntimeTestConfig();
-        Path path = configFile.toPath();
 
         if (Files.exists(path) && Files.isRegularFile(path)) {
             JsonElement json;

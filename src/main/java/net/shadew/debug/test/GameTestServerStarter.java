@@ -32,6 +32,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -76,9 +77,9 @@ public class GameTestServerStarter {
 
             // Load config
             File universe = new File(".");
-            File configPath = PathUtil.resolve(universe.toPath(), config).toFile();
+            Path configPath = PathUtil.resolve(universe.toPath(), config);
 
-            if (!configPath.exists()) {
+            if (!Files.exists(configPath)) {
                 LOGGER.error("Could not find test config file at {}", configPath);
                 System.exit(1);
                 return;
