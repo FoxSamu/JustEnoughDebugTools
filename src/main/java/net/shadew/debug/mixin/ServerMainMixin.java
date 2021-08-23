@@ -10,7 +10,8 @@ import net.shadew.debug.test.GameTestServerStarter;
 
 @Mixin(net.minecraft.server.Main.class)
 public class ServerMainMixin {
-    @Inject(method = "main", at = @At("HEAD"), cancellable = true)
+    // Injection into 'public static void main', so we don't have to remap
+    @Inject(method = "main", at = @At("HEAD"), cancellable = true, remap = false)
     private static void onMain(String[] args, CallbackInfo info) {
         boolean test = Debug.GAMETEST;
         if (test) {
