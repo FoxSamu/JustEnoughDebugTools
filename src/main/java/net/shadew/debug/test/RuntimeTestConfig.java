@@ -17,6 +17,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import net.shadew.debug.api.gametest.TestReporterType;
+import net.shadew.debug.util.PathUtil;
 
 public class RuntimeTestConfig {
     private final Set<String> sets = new HashSet<>();
@@ -94,7 +95,7 @@ public class RuntimeTestConfig {
 
     public Optional<Path> getExportPath(Path serverDir) {
         if (exportWorldPath == null) return Optional.empty();
-        return Optional.of(serverDir.resolve(exportWorldPath));
+        return Optional.of(PathUtil.resolve(serverDir, exportWorldPath));
     }
 
     public void setTestStructuresPath(String testStructuresPath) {
@@ -103,7 +104,7 @@ public class RuntimeTestConfig {
 
     public Optional<Path> getTestStructuresPath(Path serverDir) {
         if (testStructuresPath == null) return Optional.empty();
-        return Optional.of(serverDir.resolve(testStructuresPath));
+        return Optional.of(PathUtil.resolve(serverDir, testStructuresPath));
     }
 
     public void setDimension(String dimension) {
@@ -120,7 +121,7 @@ public class RuntimeTestConfig {
 
     public Optional<Path> getDatapacksPath(Path serverDir) {
         if (datapacksPath == null) return Optional.empty();
-        return Optional.of(serverDir.resolve(datapacksPath));
+        return Optional.of(PathUtil.resolve(serverDir, datapacksPath));
     }
 
     public void setReporter(JsonElement reporter) {

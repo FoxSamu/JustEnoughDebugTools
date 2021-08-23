@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.shadew.debug.test.ProperJUnitLikeTestReporter;
+import net.shadew.debug.util.PathUtil;
 
 class TestReporterRegistry {
     static final Map<ResourceLocation, TestReporterType> REG = new HashMap<>();
@@ -44,7 +45,7 @@ class TestReporterRegistry {
                     throw new RuntimeException("No export file for junit reporter");
                 }
             }
-            return new ProperJUnitLikeTestReporter(serverDir.toPath().resolve(config.getAsString()).toFile());
+            return new ProperJUnitLikeTestReporter(PathUtil.resolve(serverDir.toPath(), config.getAsString()).toFile());
         }
     }
 

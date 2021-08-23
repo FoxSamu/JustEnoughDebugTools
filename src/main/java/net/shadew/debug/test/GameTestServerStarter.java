@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import net.shadew.debug.api.GameTestInitializer;
+import net.shadew.debug.util.PathUtil;
 
 public class GameTestServerStarter {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -75,7 +76,7 @@ public class GameTestServerStarter {
 
             // Load config
             File universe = new File(".");
-            File configPath = universe.toPath().resolve(config).toFile();
+            File configPath = PathUtil.resolve(universe.toPath(), config).toFile();
 
             if (!configPath.exists()) {
                 LOGGER.error("Could not find test config file at {}", configPath);
