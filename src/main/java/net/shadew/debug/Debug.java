@@ -3,6 +3,7 @@ package net.shadew.debug;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.minecraft.gametest.framework.GameTestRegistry;
@@ -10,10 +11,14 @@ import net.minecraft.gametest.framework.StructureUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.stream.Stream;
+
 import net.shadew.debug.api.DebugInitializer;
 import net.shadew.debug.api.DebugStatusInitializer;
 import net.shadew.debug.impl.status.ServerDebugStatusImpl;
-import net.shadew.debug.test.DebugTests;
+import net.shadew.debug.test.GameTestIntegration;
+import net.shadew.debug.test.ModTestConfig;
+import net.shadew.debug.test.RuntimeTestConfig;
 
 public class Debug implements ModInitializer {
     public static final boolean GAMETEST = Boolean.parseBoolean(System.getProperty("jedt.gametest"));
@@ -24,6 +29,28 @@ public class Debug implements ModInitializer {
     private static ServerDebugStatusImpl.Builder serverDebugStatusBuilder;
     public static ServerDebugStatusImpl serverDebugStatus;
 
+    static void loadClientTests() {
+        loadTests().getAllTestMethods("_runtime", "_client").forEach(GameTestRegistry::register);
+        LOGGER.info("Loaded {} tests", GameTestRegistry.getAllTestFunctions().size());
+    }
+
+    static void loadServerTests() {
+        loadTests().getAllTestMethods("_runtime", "_server").forEach(GameTestRegistry::register);
+        LOGGER.info("Loaded {} tests", GameTestRegistry.getAllTestFunctions().size());
+    }
+
+    private static RuntimeTestConfig loadTests() {
+        RuntimeTestConfig rtTestConfig = new RuntimeTestConfig();
+        for (ModContainer container : FabricLoader.getInstance().getAllMods()) {
+            ModTestConfig config = GameTestIntegration.loadModTestConfig(container);
+            if (config == null) {
+                LOGGER.error("Failed to load jedt.tests.json in mod {}", container.getMetadata().getId());
+            }
+            rtTestConfig.addModConfig(config);
+        }
+        return rtTestConfig;
+    }
+
     @Override
     public void onInitialize() {
         // Enable GameTest
@@ -31,8 +58,7 @@ public class Debug implements ModInitializer {
 
         // ... but that's a mixin now
 
-        GameTestRegistry.register(DebugTests.class);
-
+        Stream.of(System.getProperty("java.class.path").split(";")).forEach(System.out::println);
         serverDebugStatus = createStatusInstance();
 
         if (!GAMETEST) {

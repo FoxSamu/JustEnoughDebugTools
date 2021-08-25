@@ -39,6 +39,9 @@ public class DebugClient implements ClientModInitializer {
     public void onInitializeClient() {
         serverDebugStatus = Debug.createStatusInstance();
 
+        if (!Debug.GAMETEST)
+            Debug.loadClientTests();
+
         reloadMenus();
         EntrypointUtils.invoke(
             "jedt:client", DebugClientInitializer.class,

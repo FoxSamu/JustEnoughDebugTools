@@ -85,7 +85,7 @@ public class GameTestServerStarter {
                 return;
             }
 
-            LOGGER.info("Loading test server configuration from {}", configPath);
+            LOGGER.info("Loading runtime test configuration from {}", configPath);
 
             RuntimeTestConfig rtConfig = GameTestIntegration.loadRuntimeTestConfig(configPath);
             if (rtConfig == null) {
@@ -119,6 +119,7 @@ public class GameTestServerStarter {
             /*
              * Setup level
              */
+            // TODO Move level name to runtime config
             String levelName = Optional.ofNullable(options.valueOf(worldSpec)).orElse("gametestworld");
             LevelStorageSource storageSrc = LevelStorageSource.createDefault(universe.toPath());
             LevelStorageSource.LevelStorageAccess storageAcc = storageSrc.createAccess(levelName);

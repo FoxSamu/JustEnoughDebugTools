@@ -1,3 +1,5 @@
+import java.util.stream.Collectors
+
 plugins {
     id 'fabric-loom' version '0.9-SNAPSHOT'
     id 'maven-publish'
@@ -15,9 +17,11 @@ dependencies {
     mappings loom.officialMojangMappings()
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+    testImplementation "net.fabricmc:dev-launch-injector:0.2.1+build.8"
 }
 
-processResources {
+tasks.withType(ProcessResources) {
     inputs.property "version", project.version
 
     filesMatching("fabric.mod.json") {
@@ -66,13 +70,23 @@ if (project.hasProperty("shwMavenUser") && project.hasProperty("shwMavenPass")) 
     }
 }
 
+def getTestClassPath() {
+    def cp = []
+    sourceSets.test.runtimeClasspath.each {
+        cp.add(it.toString())
+    }
+    return cp.stream().collect(Collectors.joining(";"))
+}
+
 loom {
     runs {
         client {
             vmArg "-Djedt.test_structures_path=${file("gametest/gameteststructures")}"
+            source "test"
         }
         server {
             vmArg "-Djedt.test_structures_path=${file("gametest/gameteststructures")}"
+            source "test"
         }
         gametest {
             server()
@@ -82,6 +96,7 @@ loom {
             vmArg "-Djedt.test_structures_dir=${file("gametest/gameteststructures")}"
 
             serverWithGui() // GameTestServer has no nogui property, this removes it
+            source "test"
         }
     }
 }

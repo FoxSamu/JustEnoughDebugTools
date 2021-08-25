@@ -15,6 +15,9 @@ import net.shadew.debug.util.DebugNetwork;
 public class DebugServer implements DedicatedServerModInitializer {
     @Override
     public void onInitializeServer() {
+        if (!Debug.GAMETEST)
+            Debug.loadServerTests();
+
         EntrypointUtils.invoke(
             "jedt:server", DebugServerInitializer.class,
             init -> init.onInitializeDebugServer(Debug.serverDebugStatus)

@@ -1,4 +1,4 @@
-package net.shadew.debug.test;
+package net.shadew.debug.tests;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;

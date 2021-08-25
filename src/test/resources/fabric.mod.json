@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "jedt-test",
+  "version": "${version}",
+
+  "name": "Just Enough Debug Tools Gametests",
+  "description": "Gametests belonging to JEDT.",
+  "authors": ["Shadew"],
+  "contact": { },
+
+  "license": "Apache-2.0",
+
+  "environment": "*",
+  "entrypoints": {
+  },
+
+  "depends": {
+    "fabricloader": ">=0.11.6",
+    "fabric": "*",
+    "minecraft": "1.17.x"
+  }
+}
