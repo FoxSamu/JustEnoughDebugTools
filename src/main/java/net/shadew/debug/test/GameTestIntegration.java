@@ -234,10 +234,8 @@ public class GameTestIntegration {
         ModTestConfig config = new ModTestConfig(container);
 
         Path path = container.getPath("jedt.tests.json");
-        LOGGER.info("Path: {}", path);
 
         if (Files.exists(path) && Files.isRegularFile(path)) {
-            LOGGER.info("Mod '{}' provided tests", container.getMetadata().getId());
             JsonElement json;
             try (Reader reader = Files.newBufferedReader(path)) {
                 json = new JsonParser().parse(reader);

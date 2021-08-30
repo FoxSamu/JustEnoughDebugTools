@@ -4,14 +4,11 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.minecraft.gametest.framework.GameTestRegistry;
 import net.minecraft.gametest.framework.StructureUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.stream.Stream;
 
 import net.shadew.debug.api.DebugInitializer;
 import net.shadew.debug.api.DebugStatusInitializer;
@@ -58,7 +55,6 @@ public class Debug implements ModInitializer {
 
         // ... but that's a mixin now
 
-        Stream.of(System.getProperty("java.class.path").split(";")).forEach(System.out::println);
         serverDebugStatus = createStatusInstance();
 
         if (!GAMETEST) {
@@ -76,11 +72,6 @@ public class Debug implements ModInitializer {
             if (!server.isDedicatedServer()) {
                 serverDebugStatus.resetAll();
             }
-        });
-
-        FabricLoader.getInstance().getAllMods().forEach(container -> {
-            ModMetadata meta = container.getMetadata();
-            container.getPath("jedt.tests.json");
         });
     }
 
