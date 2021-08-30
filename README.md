@@ -2,7 +2,7 @@
 
 [work in progress]
 
-You can add the mod to your 21w13a workspace. It requires the Fabric API and the Fabric Loader (v0.11.3 or higher).
+You can add the mod to your 1.17.x workspace. It requires the Fabric API and the Fabric Loader (v0.11.6 or higher).
 
 ```groovy
 repositories {
@@ -12,8 +12,7 @@ repositories {
 dependencies {
     // ...other dependencies...
 
-    // For 1.16.5, use version 0.1 instead
-    modImplementation("net.shadew:jedt:0.3.1") {
+    modImplementation("net.shadew:jedt:0.3.2") {
         exclude group: "net.fabricmc"
         exclude group: "net.fabricmc.fabric-api"
     }
