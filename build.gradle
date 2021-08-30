@@ -33,7 +33,7 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
+task sourcesJar(type: Jar, dependsOn: classes, group: "build") {
     archiveClassifier.set("sources")
     from sourceSets.main.allSource
 }
@@ -78,25 +78,43 @@ def getTestClassPath() {
     return cp.stream().collect(Collectors.joining(";"))
 }
 
+sourceSets {
+    gametest {
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+    }
+    main {
+    }
+}
+
+dependencies {
+    gametestImplementation sourceSets.main.output
+}
+
 loom {
     runs {
         client {
+            name "Minecraft Client"
+            source sourceSets.gametest
+
             vmArg "-Djedt.test_structures_path=${file("gametest/gameteststructures")}"
-            source "test"
         }
         server {
+            name "Minecraft Server"
+            source sourceSets.gametest
+
             vmArg "-Djedt.test_structures_path=${file("gametest/gameteststructures")}"
-            source "test"
         }
         gametest {
             server()
+            name "Minecraft GameTest"
+            source sourceSets.gametest
 
             vmArg "-Djedt.gametest=true"
             vmArg "-Djedt.test_config=${file("gametest/gametest.json")}"
             vmArg "-Djedt.test_structures_dir=${file("gametest/gameteststructures")}"
 
             serverWithGui() // GameTestServer has no nogui property, this removes it
-            source "test"
         }
     }
 }
