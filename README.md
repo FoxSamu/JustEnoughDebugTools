@@ -34,7 +34,7 @@ To enable the debug tools on the dedicated server, add a JSON file in your serve
 ```
 
 When `available` is set to `true`, you can still disable certain functions of the debug mod by defining them as
-properties in this JSON file. Currently, there are three configurable properties:
+properties in this JSON file. Currently, there are four configurable properties:
 
 - `game_rule_sync` (default: `true`) indicates whether the full list of game rules and their values should be synced
   with the client every time they change. This is used to show semantic game rule options in the debug tools menu.
