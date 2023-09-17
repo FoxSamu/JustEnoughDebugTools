@@ -14,13 +14,13 @@
   "environment": "*",
   "entrypoints": {
     "client": [
-      "net.shadew.debug.DebugClient",
-      "net.shadew.debug.util.DebugNetworkClient",
-      "net.shadew.debug.api.render.DebugViewManager::INIT"
+      "dev.runefox.jedt.DebugClient",
+      "dev.runefox.jedt.util.DebugNetworkClient",
+      "dev.runefox.jedt.api.render.DebugViewManager::INIT"
     ],
     "main": [
-      "net.shadew.debug.Debug",
-      "net.shadew.debug.util.DebugNetwork"
+      "dev.runefox.jedt.Debug",
+      "dev.runefox.jedt.util.DebugNetwork"
     ]
   },
 

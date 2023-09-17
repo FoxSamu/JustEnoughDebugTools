@@ -59,11 +59,11 @@ if (project.hasProperty("shwMavenUser") && project.hasProperty("shwMavenPass")) 
 
         repositories {
             maven {
-                name = "ShwMaven"
+                name = "RunefoxMaven"
                 url = uri( "https://maven.shadew.net/" )
                 credentials {
-                    username = shwMavenUser
-                    password = shwMavenPass
+                    username = rfxMavenUser
+                    password = rfxMavenPass
                 }
             }
         }

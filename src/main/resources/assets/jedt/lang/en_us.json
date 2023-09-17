@@ -1,7 +1,7 @@
 {
-  "key.jedt.options": "Debug Options Screen",
+  "key.jedt.options": "Debug Menu",
 
-  "debug.menu.jedt.root": "Debug Options",
+  "debug.menu.jedt.root": "Debug Menu",
   "debug.menu.jedt.commands": "Quick Commands",
   "debug.menu.jedt.commands.desc": "Quick access to various handy debugging commands.",
   "debug.menu.jedt.actions": "Actions",
