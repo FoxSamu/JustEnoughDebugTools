@@ -4,31 +4,29 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.GameRules;
 
-public class NumberGameruleOption extends NumberOption {
+public class NumberGameruleItem extends NumberItem {
     private final String command;
     private final Component response;
     private final GameRules.Key<GameRules.IntegerValue> key;
     private final Component commandDesc;
 
-    public NumberGameruleOption(Component name, GameRules.Key<GameRules.IntegerValue> key, Component response) {
+    public NumberGameruleItem(Component name, GameRules.Key<GameRules.IntegerValue> key, Component response) {
         super(name);
         this.command = "gamerule " + key + " ";
         this.response = response;
         this.key = key;
-        this.commandDesc = new TextComponent("/" + command + "<x>").withStyle(ChatFormatting.AQUA);
+        this.commandDesc = Component.literal("/" + command + "<x>").withStyle(ChatFormatting.AQUA);
     }
 
-    public NumberGameruleOption(Component name, GameRules.Key<GameRules.IntegerValue> key) {
+    public NumberGameruleItem(Component name, GameRules.Key<GameRules.IntegerValue> key) {
         this(name, key, null);
     }
 
     @Override
     public Component getDescription() {
-        MutableComponent desc = new TextComponent("").append(commandDesc);
+        MutableComponent desc = Component.empty().append(commandDesc);
         Component superDesc = super.getDescription();
         if (superDesc != null) {
             desc.append("\n");
@@ -48,8 +46,8 @@ public class NumberGameruleOption extends NumberOption {
     protected void mutate(int delta, OptionSelectContext context) {
         if (!context.hasPermissionLevel(2)) {
             context.spawnResponse(
-                new TranslatableComponent("debug.options.jedt.commands.no_permission")
-                    .withStyle(ChatFormatting.RED)
+                Component.translatable("debug.options.jedt.commands.no_permission")
+                         .withStyle(ChatFormatting.RED)
             );
             return;
         }

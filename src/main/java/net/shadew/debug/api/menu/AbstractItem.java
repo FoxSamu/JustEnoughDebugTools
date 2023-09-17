@@ -11,13 +11,13 @@ import net.shadew.debug.api.status.DebugStatusKey;
 import net.shadew.debug.api.status.ServerDebugStatus;
 
 /**
- * An abstract and configurable implementation of {@link DebugOption}.
+ * An abstract and configurable implementation of {@link Item}.
  *
- * @author Shadew
- * @see DebugOption
+ * @author Samū
+ * @see Item
  * @since 0.1
  */
-public abstract class AbstractDebugOption implements DebugOption {
+public abstract class AbstractItem implements Item {
     private final Component name;
     private Component longName;
     private Component description;
@@ -27,7 +27,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param name The name to display on the option widget
      * @since 0.1
      */
-    public AbstractDebugOption(Component name) {
+    public AbstractItem(Component name) {
         this.name = name;
     }
 
@@ -76,7 +76,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      *
      * @since 0.1
      */
-    public AbstractDebugOption show() {
+    public AbstractItem show() {
         visible = () -> true;
         return this;
     }
@@ -86,7 +86,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      *
      * @since 0.1
      */
-    public AbstractDebugOption hide() {
+    public AbstractItem hide() {
         visible = () -> false;
         return this;
     }
@@ -97,7 +97,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param supp The lookup function.
      * @since 0.1
      */
-    public AbstractDebugOption onlyIf(BooleanSupplier supp) {
+    public AbstractItem onlyIf(BooleanSupplier supp) {
         visible = supp;
         return this;
     }
@@ -108,7 +108,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param supp The lookup function.
      * @since 0.1
      */
-    public AbstractDebugOption hideIf(BooleanSupplier supp) {
+    public AbstractItem hideIf(BooleanSupplier supp) {
         visible = () -> !supp.getAsBoolean();
         return this;
     }
@@ -119,7 +119,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param bool The value
      * @since 0.1
      */
-    public AbstractDebugOption onlyIf(MutableBoolean bool) {
+    public AbstractItem onlyIf(MutableBoolean bool) {
         visible = bool::booleanValue;
         return this;
     }
@@ -130,7 +130,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param bool The value
      * @since 0.1
      */
-    public AbstractDebugOption hideIf(MutableBoolean bool) {
+    public AbstractItem hideIf(MutableBoolean bool) {
         visible = () -> !bool.booleanValue();
         return this;
     }
@@ -142,7 +142,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param key    The status key that must be available
      * @since 0.1
      */
-    public AbstractDebugOption onlyIf(ServerDebugStatus status, DebugStatusKey<?> key) {
+    public AbstractItem onlyIf(ServerDebugStatus status, DebugStatusKey<?> key) {
         visible = () -> status.isAvailable(key);
         return this;
     }
@@ -154,7 +154,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param key    The status key that must be available
      * @since 0.1
      */
-    public AbstractDebugOption hideIf(ServerDebugStatus status, DebugStatusKey<?> key) {
+    public AbstractItem hideIf(ServerDebugStatus status, DebugStatusKey<?> key) {
         visible = () -> !status.isAvailable(key);
         return this;
     }
@@ -165,7 +165,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param pred The lookup function
      * @since 0.1
      */
-    public AbstractDebugOption onlyIf(Predicate<Minecraft> pred) {
+    public AbstractItem onlyIf(Predicate<Minecraft> pred) {
         visible = () -> pred.test(Minecraft.getInstance());
         return this;
     }
@@ -176,7 +176,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param pred The lookup function
      * @since 0.1
      */
-    public AbstractDebugOption hideIf(Predicate<Minecraft> pred) {
+    public AbstractItem hideIf(Predicate<Minecraft> pred) {
         visible = () -> !pred.test(Minecraft.getInstance());
         return this;
     }
@@ -187,7 +187,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param desc The description
      * @since 0.2
      */
-    public AbstractDebugOption desc(Component desc) {
+    public AbstractItem desc(Component desc) {
         description = desc;
         return this;
     }
@@ -198,7 +198,7 @@ public abstract class AbstractDebugOption implements DebugOption {
      * @param name The long name
      * @since 0.2
      */
-    public AbstractDebugOption longName(Component name) {
+    public AbstractItem longName(Component name) {
         longName = name;
         return this;
     }

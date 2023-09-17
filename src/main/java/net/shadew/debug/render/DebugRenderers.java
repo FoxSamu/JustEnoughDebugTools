@@ -37,8 +37,8 @@ public class DebugRenderers {
         DebugRenderEvents.RENDER.invoker().render(pose, buffsrc, cameraX, cameraY, cameraZ);
 
         RenderSystem.getModelViewStack().pushPose();
-        RenderSystem.getModelViewStack().last().pose().setIdentity();
-        RenderSystem.getModelViewStack().last().normal().setIdentity();
+        RenderSystem.getModelViewStack().last().pose().identity();
+        RenderSystem.getModelViewStack().last().normal().identity();
         RenderSystem.applyModelViewMatrix();
         buffsrc.endBatch(RenderType.lines());
         buffsrc.endBatch();

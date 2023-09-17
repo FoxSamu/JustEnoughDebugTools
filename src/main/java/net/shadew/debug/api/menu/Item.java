@@ -6,20 +6,18 @@ import net.minecraft.network.chat.Component;
  * An option to add to a menu. You may implement this interface to create your custom options, but you likely want to
  * use or inherit one of the default implementations.
  *
- * @author Shadew
- * @see DebugMenu
- * @see AbstractDebugOption
- * @see ActionOption
- * @see BooleanOption
- * @see NumberOption
- * @see SimpleActionOption
- * @see BooleanGameruleOption
- * @see NumberGameruleOption
- * @see CommandOption
+ * @author Samū
+ * @see Menu
+ * @see AbstractItem
+ * @see ActionItem
+ * @see BooleanItem
+ * @see NumberItem
+ * @see SimpleActionItem
+ * @see CommandItem
  * @see MenuOption
  * @since 0.1
  */
-public interface DebugOption {
+public interface Item {
 
     /**
      * Returns the component to display on the widget of this debug option. Must not return null.

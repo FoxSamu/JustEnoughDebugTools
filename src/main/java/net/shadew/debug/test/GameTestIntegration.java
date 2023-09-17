@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.gametest.framework.TestFunction;
+import net.minecraft.world.level.block.Rotation;
 import org.apache.logging.log4j.Logger;
 
 import java.io.Reader;
@@ -78,45 +79,70 @@ public class GameTestIntegration {
             if (arr.size() == 2) {
                 int x = arr.get(0).getAsInt();
                 int z = arr.get(1).getAsInt();
-                config.setStart(x, z);
+                config.start(x, z);
             } else {
                 int x = arr.get(0).getAsInt();
                 int y = arr.get(1).getAsInt();
                 int z = arr.get(2).getAsInt();
-                config.setStart(x, y, z);
+                config.start(x, y, z);
             }
         }
 
         // World zip export path, allows for a java property as input to use with Gradle
         if (obj.has("export")) {
-            config.setExportPath(path(obj.get("export").getAsString()));
+            config.exportPath(path(obj.get("export").getAsString()));
         }
 
         // Test structures directory, allows for a java property as input to use with Gradle
         if (obj.has("test_structures_dir")) {
-            config.setTestStructuresPath(path(obj.get("test_structures_dir").getAsString()));
+            config.testStructuresPath(path(obj.get("test_structures_dir").getAsString()));
         }
 
         // Test server datapacks directory, allows for a java property as input to use with Gradle
         if (obj.has("datapacks_dir")) {
-            config.setDatapacksPath(path(obj.get("datapacks_dir").getAsString()));
+            config.datapacksPath(path(obj.get("datapacks_dir").getAsString()));
         }
 
         // Dimension to test in
-        // TODO NYI
         if (obj.has("dimension")) {
-            config.setDimension(obj.get("dimension").getAsString());
+            config.dimension(obj.get("dimension").getAsString());
         }
 
         // Test reporter type + config. Loaded dynamically later on
         if (obj.has("reporter")) {
-            config.setReporter(obj.get("reporter"));
+            config.reporter(obj.get("reporter"));
         }
 
         // Max simultaneous tests. Larger batches are split up into groups of this size
         if (obj.has("max_simultaneous")) {
-            config.setMaxSimultaneous(obj.get("max_simultaneous").getAsInt());
+            config.maxSimultaneous(obj.get("max_simultaneous").getAsInt());
         }
+
+        // Tests per row
+        if (obj.has("tests_per_row")) {
+            config.testsPerRow(obj.get("tests_per_row").getAsInt());
+        }
+
+        // Tests rotation
+        if (obj.has("rotation")) {
+            config.testRotation(rotation(obj.get("rotation").getAsInt()));
+        }
+    }
+
+    private static Rotation rotation(int angle) {
+        if (angle % 90 != 0)
+            throw new RuntimeException("'rotation' must be a multiple of 90 degrees");
+
+        angle %= 360;
+        if (angle < 0)
+            angle += 360;
+
+        return switch (angle) {
+            default -> Rotation.NONE;
+            case 90 -> Rotation.CLOCKWISE_90;
+            case 180 -> Rotation.CLOCKWISE_180;
+            case 270 -> Rotation.COUNTERCLOCKWISE_90;
+        };
     }
 
     private static String path(String v) {

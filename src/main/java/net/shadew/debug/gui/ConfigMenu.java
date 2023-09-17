@@ -1,15 +1,13 @@
 package net.shadew.debug.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -22,9 +20,9 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-import net.shadew.debug.api.menu.DebugOption;
+import net.shadew.debug.api.menu.Item;
 
-public class ConfigMenu extends GuiComponent implements GuiEventListener {
+public class ConfigMenu implements GuiEventListener {
     private static final ResourceLocation TEXTURE = new ResourceLocation("jedt:textures/gui/options.png");
     public static final int MENU_WIDTH = 128;
     public static final int ITEM_HEIGHT = 20;
@@ -280,10 +278,20 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
         return mouseX >= left && mouseX <= left + MENU_WIDTH;
     }
 
-    public boolean render(PoseStack matrices, int mouseX, int mouseY, float partialTicks, DescriptionBox box) {
+    @Override
+    public void setFocused(boolean bl) {
+
+    }
+
+    @Override
+    public boolean isFocused() {
+        return false;
+    }
+
+    public boolean render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks, DescriptionBox box) {
         boolean hasDescriptionBox = false;
         if (swapManager != null) {
-            swapManager.render(matrices, mouseX, mouseY, partialTicks, box);
+            swapManager.render(graphics, mouseX, mouseY, partialTicks, box);
             return hasDescriptionBox;
         }
 
@@ -303,7 +311,7 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
         int overflow = itemsHeight - viewHeight;
         boolean scrollbar = overflow > 0;
         int offset = scrollbar ? (int) (overflow * scroll) : 0;
-        int scrollbarLength = scrollbar ? (int) (((float) viewHeight / itemsHeight) * viewHeight) : 0;
+        int scrollbarLength = scrollbar ? (int) ((float) viewHeight / itemsHeight * viewHeight) : 0;
         int scrollbarSpace = scrollbar ? viewHeight - scrollbarLength : 0;
         int scrollbarOffset = scrollbar ? (int) (scrollbarSpace * scroll) : 0;
 
@@ -324,11 +332,10 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
         int alphaFactor = (int) (itemOpacity * 255) << 24;
 
         if (widthf > 0) {
-            RenderSystem.setShaderTexture(0, TEXTURE);
             int h = height;
 
             while (h > 0) {
-                blit(matrices, left, height - h, MENU_WIDTH - width, 0, width, Math.min(height, h));
+                graphics.blit(TEXTURE, left, height - h, MENU_WIDTH - width, 0, width, Math.min(height, h));
                 h -= height;
             }
         }
@@ -351,26 +358,25 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
 
                 if (visibleHeight > 0 && (y >= 0 || y <= height)) {
                     RenderSystem.setShaderColor(1, 1, 1, itemOpacity);
-                    RenderSystem.setShaderTexture(0, TEXTURE);
                     int uOffset = ITEM_HEIGHT - visibleHeight;
                     int topY = bottomY - visibleHeight;
 
                     if (interactive && !hoveringScrollbar && mouseX >= x1 && mouseX < x2 && mouseY >= y1 && mouseY < y2) {
                         box.updateHovered(entry.option, x1, y1, x2 - x1, y2 - y1, DebugConfigScreen.INSTANCE.width, DebugConfigScreen.INSTANCE.height);
                         hasDescriptionBox = true;
-                        blit(matrices, left, topY, MENU_WIDTH, ITEM_HEIGHT * (3 + entry.type() * 2) + uOffset, width, visibleHeight);
+                        graphics.blit(TEXTURE, left, topY, MENU_WIDTH, ITEM_HEIGHT * (3 + entry.type() * 2) + uOffset, width, visibleHeight);
                     } else {
-                        blit(matrices, left, topY, MENU_WIDTH, ITEM_HEIGHT * (2 + entry.type() * 2) + uOffset, width, visibleHeight);
+                        graphics.blit(TEXTURE, left, topY, MENU_WIDTH, ITEM_HEIGHT * (2 + entry.type() * 2) + uOffset, width, visibleHeight);
                     }
                     RenderSystem.setShaderColor(1, 1, 1, 1);
 
                     RenderSystem.enableBlend();
-                    drawString(matrices, textRenderer, entry.text, SIDE_PADDING + left, TOP_PADDING + y, tc);
+                    graphics.drawString(textRenderer, entry.text, SIDE_PADDING + left, TOP_PADDING + y, tc, true);
 
                     Component extra = entry.extraInfo();
                     if (extra != null) {
                         int wdt = textRenderer.width(extra);
-                        textRenderer.drawShadow(matrices, extra, x2 - ITEM_HEIGHT - wdt, TOP_PADDING + y, tc);
+                        graphics.drawString(textRenderer, extra, x2 - ITEM_HEIGHT - wdt, TOP_PADDING + y, tc, true);
                     }
                 }
 
@@ -383,17 +389,15 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
                 int sy1 = ITEM_HEIGHT + scrollbarOffset;
                 int sy2 = sy1 + scrollbarLength;
 
-                fill(matrices, sx1, sy1, sx2, sy2, 0x55FFFFFF);
+                graphics.fill(sx1, sy1, sx2, sy2, 0x55FFFFFF);
             }
         }
 
-        matrices.pushPose();
-        matrices.translate(0, 0, 10);
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, 10);
 
         if (widthf > 0) {
-
-            RenderSystem.setShaderTexture(0, TEXTURE);
-            blit(matrices, left, 0, 2 * MENU_WIDTH - width, 0, width, ITEM_HEIGHT);
+            graphics.blit(TEXTURE, left, 0, 2 * MENU_WIDTH - width, 0, width, ITEM_HEIGHT);
 
             int cbWidth = Math.min(ITEM_HEIGHT, width);
 
@@ -403,45 +407,44 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
             int y2 = ITEM_HEIGHT;
 
             if (interactive && mouseX >= x1 && mouseX < x2 && mouseY >= y1 && mouseY < y2) {
-                RenderSystem.setShaderTexture(0, TEXTURE);
-                blit(matrices, x1, 0, 2 * MENU_WIDTH - cbWidth, ITEM_HEIGHT, cbWidth, ITEM_HEIGHT);
+                graphics.blit(TEXTURE, x1, 0, 2 * MENU_WIDTH - cbWidth, ITEM_HEIGHT, cbWidth, ITEM_HEIGHT);
             }
         }
 
 
         if ((alphaFactor & 0xFC000000) != 0) {
-            textRenderer.draw(matrices, title, SIDE_PADDING + left, TOP_PADDING, alphaFactor);
+            graphics.drawString(textRenderer, title, SIDE_PADDING + left, TOP_PADDING, alphaFactor, false);
         }
 
-        matrices.popPose();
+        graphics.pose().popPose();
         return hasDescriptionBox;
     }
 
     public static class Entry implements Comparable<Entry> {
         private Component text;
-        private DebugOption option;
+        private Item option;
         private final int textColor;
         private final Runnable clickHandler;
         protected Supplier<Component> extraInfo = () -> null;
         protected int type;
 
-        public Entry(DebugOption option, Component text, Runnable clickHandler, int textColor) {
+        public Entry(Item option, Component text, Runnable clickHandler, int textColor) {
             this.option = option;
             this.text = text;
             this.clickHandler = clickHandler;
             this.textColor = textColor == -1 ? FOREGROUND : textColor & 0xFFFFFF;
         }
 
-        public Entry(DebugOption option, Component text, Runnable clickHandler) {
+        public Entry(Item option, Component text, Runnable clickHandler) {
             this(option, text, clickHandler, FOREGROUND);
         }
 
-        public Entry(DebugOption option, Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
+        public Entry(Item option, Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
             this(option, text, clickHandler, FOREGROUND);
             this.extraInfo = extraInfo;
         }
 
-        public Entry(DebugOption option, Component text, Runnable clickHandler, Supplier<Component> extraInfo, int type) {
+        public Entry(Item option, Component text, Runnable clickHandler, Supplier<Component> extraInfo, int type) {
             this(option, text, clickHandler, extraInfo);
             this.type = type;
         }
@@ -476,15 +479,15 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
     }
 
     public static class MenuEntry extends Entry {
-        public MenuEntry(DebugOption option, Component text, Runnable clickHandler, int textColor) {
+        public MenuEntry(Item option, Component text, Runnable clickHandler, int textColor) {
             super(option, text, clickHandler, textColor);
         }
 
-        public MenuEntry(DebugOption option, Component text, Runnable clickHandler) {
+        public MenuEntry(Item option, Component text, Runnable clickHandler) {
             super(option, text, clickHandler);
         }
 
-        public MenuEntry(DebugOption option, Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
+        public MenuEntry(Item option, Component text, Runnable clickHandler, Supplier<Component> extraInfo) {
             super(option, text, clickHandler);
             this.extraInfo = extraInfo;
         }
@@ -506,17 +509,17 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
     public static class CheckableEntry extends Entry {
         private final BooleanSupplier hasCheck;
 
-        public CheckableEntry(DebugOption option, Component text, Runnable clickHandler, BooleanSupplier hasCheck, int textColor) {
+        public CheckableEntry(Item option, Component text, Runnable clickHandler, BooleanSupplier hasCheck, int textColor) {
             super(option, text, clickHandler, textColor);
             this.hasCheck = hasCheck;
         }
 
-        public CheckableEntry(DebugOption option, Component text, Runnable clickHandler, BooleanSupplier hasCheck) {
+        public CheckableEntry(Item option, Component text, Runnable clickHandler, BooleanSupplier hasCheck) {
             super(option, text, clickHandler);
             this.hasCheck = hasCheck;
         }
 
-        public CheckableEntry(DebugOption option, Component text, Runnable clickHandler, BooleanSupplier hasCheck, Supplier<Component> extraInfo) {
+        public CheckableEntry(Item option, Component text, Runnable clickHandler, BooleanSupplier hasCheck, Supplier<Component> extraInfo) {
             super(option, text, clickHandler);
             this.hasCheck = hasCheck;
             this.extraInfo = extraInfo;
@@ -532,28 +535,28 @@ public class ConfigMenu extends GuiComponent implements GuiEventListener {
         private final Runnable upperClickHandler;
         private final Runnable lowerClickHandler;
 
-        public SpinnerEntry(DebugOption option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value, int textColor) {
+        public SpinnerEntry(Item option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value, int textColor) {
             super(option, text, clickHandler, textColor);
-            this.extraInfo = () -> new TextComponent(value.getAsInt() + "");
+            this.extraInfo = () -> Component.literal(value.getAsInt() + "");
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;
         }
 
-        public SpinnerEntry(DebugOption option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value) {
+        public SpinnerEntry(Item option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, IntSupplier value) {
             super(option, text, clickHandler);
-            this.extraInfo = () -> new TextComponent(value.getAsInt() + "");
+            this.extraInfo = () -> Component.literal(value.getAsInt() + "");
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;
         }
 
-        public SpinnerEntry(DebugOption option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value, int textColor) {
+        public SpinnerEntry(Item option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value, int textColor) {
             super(option, text, clickHandler, textColor);
             this.extraInfo = value;
             this.upperClickHandler = upperClickHandler;
             this.lowerClickHandler = lowerClickHandler;
         }
 
-        public SpinnerEntry(DebugOption option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value) {
+        public SpinnerEntry(Item option, Component text, Runnable clickHandler, Runnable upperClickHandler, Runnable lowerClickHandler, Supplier<Component> value) {
             super(option, text, clickHandler);
             this.extraInfo = value;
             this.upperClickHandler = upperClickHandler;

@@ -2,24 +2,23 @@ package net.shadew.debug.api.menu;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 
 /**
- * An abstract numeric option, of type {@link OptionType#NUMBER}. A numeric option is managed by two methods: {@link
- * #get} and {@link #mutate}.
+ * An abstract numeric option, of type {@link OptionType#NUMBER}. A numeric option is managed by two methods:
+ * {@link #get} and {@link #mutate}.
  *
- * @author Shadew
- * @see DebugOption
- * @see AbstractDebugOption
+ * @author Samū
+ * @see Item
+ * @see AbstractItem
  * @since 0.1
  */
-public abstract class NumberOption extends AbstractDebugOption {
+public abstract class NumberItem extends AbstractItem {
 
     /**
      * @param name The name to display on the option widget
      * @since 0.1
      */
-    public NumberOption(Component name) {
+    public NumberItem(Component name) {
         super(name);
     }
 
@@ -68,6 +67,6 @@ public abstract class NumberOption extends AbstractDebugOption {
      */
     @Override
     public Component getDisplayValue() {
-        return new TranslatableComponent("debug.options.jedt.default_number", get()).withStyle(ChatFormatting.YELLOW);
+        return Component.translatable("debug.options.jedt.default_number", get()).withStyle(ChatFormatting.YELLOW);
     }
 }

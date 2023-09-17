@@ -8,6 +8,7 @@ import net.minecraft.gametest.framework.LogTestReporter;
 import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.gametest.framework.TestReporter;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Rotation;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -29,6 +30,8 @@ public class RuntimeTestConfig {
     private String dimension = "overworld";
     private String datapacksPath;
     private JsonElement reporter;
+    private int testsPerRow = 8;
+    private Rotation testRotation = Rotation.NONE;
     private int maxSimultaneous = 100;
     private final Map<String, ModTestConfig> modConfigs = new HashMap<>();
 
@@ -36,7 +39,7 @@ public class RuntimeTestConfig {
         sets.add(set);
     }
 
-    public Set<String> getSets() {
+    public Set<String> sets() {
         return sets;
     }
 
@@ -50,7 +53,7 @@ public class RuntimeTestConfig {
         mods.add(mod);
     }
 
-    public Set<String> getMods() {
+    public Set<String> mods() {
         return mods;
     }
 
@@ -64,69 +67,67 @@ public class RuntimeTestConfig {
         filters.add(filter);
     }
 
-    public List<Predicate<TestFunction>> getFilters() {
+    public List<Predicate<TestFunction>> filters() {
         return filters;
     }
 
-    public Stream<TestFunction> getFilteredTests() {
+    public Stream<TestFunction> filteredTests() {
         Stream<TestFunction> stream = GameTestRegistry.getAllTestFunctions().stream();
         filters.forEach(stream::filter);
         return stream;
     }
 
-    public void setStart(int x, int z) {
+    public void start(int x, int z) {
         startX = x;
         startZ = z;
     }
 
-    public void setStart(int x, int y, int z) {
+    public void start(int x, int y, int z) {
         startX = x;
         startY = y;
         startZ = z;
     }
 
-    public BlockPos getStart() {
+    public BlockPos start() {
         return new BlockPos(startX, startY, startZ);
     }
 
-    public void setExportPath(String path) {
+    public void exportPath(String path) {
         exportWorldPath = path;
     }
 
-    public Optional<Path> getExportPath(Path serverDir) {
+    public Optional<Path> exportPath(Path serverDir) {
         if (exportWorldPath == null) return Optional.empty();
         return Optional.of(PathUtil.resolve(serverDir, exportWorldPath));
     }
 
-    public void setTestStructuresPath(String testStructuresPath) {
+    public void testStructuresPath(String testStructuresPath) {
         this.testStructuresPath = testStructuresPath;
     }
 
-    public Optional<Path> getTestStructuresPath(Path serverDir) {
+    public Optional<Path> testStructuresPath(Path serverDir) {
         if (testStructuresPath == null) return Optional.empty();
         return Optional.of(PathUtil.resolve(serverDir, testStructuresPath));
     }
 
-    @Deprecated // NYI
-    public void setDimension(String dimension) {
+    public void dimension(String dimension) {
         this.dimension = dimension;
     }
 
-    @Deprecated // NYI
-    public String getDimension() {
+    public String dimension() {
         return dimension;
     }
 
-    public void setDatapacksPath(String datapacksPath) {
+    public void datapacksPath(String datapacksPath) {
         this.datapacksPath = datapacksPath;
     }
 
-    public Optional<Path> getDatapacksPath(Path serverDir) {
+    public Optional<Path> datapacksPath(Path serverDir) {
         if (datapacksPath == null) return Optional.empty();
         return Optional.of(PathUtil.resolve(serverDir, datapacksPath));
     }
 
-    public void setReporter(JsonElement reporter) {
+    public void reporter(JsonElement reporter) {
         this.reporter = reporter;
     }
 
@@ -159,23 +160,39 @@ public class RuntimeTestConfig {
         }
     }
 
-    public void setMaxSimultaneous(int maxSimultaneous) {
+    public void maxSimultaneous(int maxSimultaneous) {
         this.maxSimultaneous = maxSimultaneous;
     }
 
-    public int getMaxSimultaneous() {
+    public int maxSimultaneous() {
         return maxSimultaneous;
     }
 
-    public Map<String, ModTestConfig> getModConfigsById() {
+    public void testsPerRow(int testsPerRow) {
+        this.testsPerRow = testsPerRow;
+    }
+
+    public int testsPerRow() {
+        return testsPerRow;
+    }
+
+    public void testRotation(Rotation testRotation) {
+        this.testRotation = testRotation;
+    }
+
+    public Rotation testRotation() {
+        return testRotation;
+    }
+
+    public Map<String, ModTestConfig> modConfigsById() {
         return modConfigs;
     }
 
-    public Collection<ModTestConfig> getModConfigs() {
+    public Collection<ModTestConfig> modConfigs() {
         return modConfigs.values();
     }
 
-    public ModTestConfig getModConfig(String modId) {
+    public ModTestConfig modConfig(String modId) {
         return modConfigs.get(modId);
     }
 
@@ -183,11 +200,11 @@ public class RuntimeTestConfig {
         modConfigs.put(config.getModId(), config);
     }
 
-    public Stream<Method> getAllTestMethods(String... sets) {
+    public Stream<Method> allTestMethods(String... sets) {
         return modConfigs.values().stream().flatMap(config -> config.getMethods(sets));
     }
 
-    public Stream<String> getAllModSets() {
+    public Stream<String> allModSets() {
         return modConfigs.values().stream().flatMap(ModTestConfig::getSets);
     }
 }

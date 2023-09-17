@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import net.shadew.debug.api.menu.DebugMenu;
-import net.shadew.debug.api.menu.DebugOption;
+import net.shadew.debug.api.menu.Item;
+import net.shadew.debug.api.menu.Menu;
 
-public class DebugMenuImpl implements DebugMenu {
+public class MenuImpl implements Menu {
     private final Component header;
-    private final List<DebugOption> options = new ArrayList<>();
+    private final List<Item> options = new ArrayList<>();
 
-    public DebugMenuImpl(Component header) {
+    public MenuImpl(Component header) {
         this.header = header;
     }
 
@@ -23,12 +23,12 @@ public class DebugMenuImpl implements DebugMenu {
     }
 
     @Override
-    public Stream<DebugOption> options() {
+    public Stream<Item> options() {
         return options.stream();
     }
 
     @Override
-    public void addOption(DebugOption option) {
+    public void addOption(Item option) {
         options.add(option);
     }
 

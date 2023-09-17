@@ -1,123 +1,162 @@
+//
+// Source code recreated from a .class file by IntelliJ IDEA
+// (powered by FernFlower decompiler)
+//
+
 package net.shadew.debug.test;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.yggdrasil.ServicesKeySet;
+import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Lifecycle;
 import net.minecraft.CrashReport;
 import net.minecraft.SystemReport;
 import net.minecraft.Util;
+import net.minecraft.commands.Commands.CommandSelection;
+import net.minecraft.core.MappedRegistry;
 import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.*;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.ServerResources;
+import net.minecraft.server.Services;
+import net.minecraft.server.WorldLoader;
+import net.minecraft.server.WorldStem;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.progress.LoggerChunkProgressListener;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.level.DataPackConfig;
-import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.LevelSettings;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.block.Rotation;
-import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.levelgen.FlatLevelSource;
-import net.minecraft.world.level.levelgen.WorldGenSettings;
-import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
+import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.level.*;
+import net.minecraft.world.level.dimension.LevelStem;
+import net.minecraft.world.level.levelgen.WorldDimensions;
+import net.minecraft.world.level.levelgen.WorldOptions;
+import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.PrimaryLevelData;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.net.Proxy;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.shadew.debug.Debug;
 import net.shadew.debug.api.gametest.GameTestCIUtil;
 import net.shadew.debug.api.gametest.GameTestEvents;
 
-// Patch of GameTestServer, so it can be patched to add more JEDT
 public class DebugGameTestServer extends MinecraftServer {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final int PROGRESS_INTERVAL = 20;
 
-    private static final int PROGRESS_REPORT_INTERVAL = 20;
+    private static final Services TEST_SERVICES = new Services(null, ServicesKeySet.EMPTY, null, null);
 
     private static final GameRules TEST_GAME_RULES = Util.make(new GameRules(), rules -> {
         rules.getRule(GameRules.RULE_DOMOBSPAWNING).set(false, null);
         rules.getRule(GameRules.RULE_WEATHER_CYCLE).set(false, null);
     });
+
+    private static final WorldOptions TEST_OPTIONS = new WorldOptions(
+        0L,    // Seed
+        false, // Generate structures
+        false  // Bonus chest
+    );
+
     private static final LevelSettings TEST_SETTINGS = new LevelSettings(
-        "Test Level",           // Name
-        GameType.CREATIVE,      // Gamemode
-        false,                  // Hardcore
-        Difficulty.NORMAL,      // Difficulty
-        true,                   // Commands
-        TEST_GAME_RULES,        // Game rules
-        DataPackConfig.DEFAULT  // Data packs
+        "Test Level",                   // Name
+        GameType.CREATIVE,              // Gamemode
+        false,                          // Hardcore
+        Difficulty.NORMAL,              // Difficulty
+        true,                           // Commands
+        TEST_GAME_RULES,                // Game rules
+        WorldDataConfiguration.DEFAULT  // Data packs
     );
 
     private final List<GameTestBatch> testBatches;
     private final RuntimeTestConfig config;
     private final File serverDir;
 
+    private ServerLevel testLevel;
+
+    @Nullable
     private MultipleTestTracker testTracker;
 
-    public DebugGameTestServer(Thread mainThread, File serverDir, LevelStorageSource.LevelStorageAccess storage, PackRepository packRepo, ServerResources resources, RuntimeTestConfig config, RegistryAccess.RegistryHolder registries) {
-        this(
-            mainThread, serverDir, storage, packRepo, resources, config, registries,
-            registries.registryOrThrow(Registry.BIOME_REGISTRY),
-            registries.registryOrThrow(Registry.DIMENSION_TYPE_REGISTRY)
-        );
-    }
+    public static DebugGameTestServer create(Thread thread, File serverDir, LevelStorageSource.LevelStorageAccess lsa, PackRepository datapacks, RuntimeTestConfig config) {
 
-    private DebugGameTestServer(Thread mainThread, File serverDir, LevelStorageSource.LevelStorageAccess storage, PackRepository packRepo, ServerResources resources, RuntimeTestConfig config, RegistryAccess.RegistryHolder registries, Registry<Biome> biomes, Registry<DimensionType> dimensions) {
-        super(
-            mainThread, registries, storage,
-            new PrimaryLevelData(
-                TEST_SETTINGS,
-                new WorldGenSettings(
-                    0,     // Seed
-                    false, // Features
-                    false, // Bonus chest
-                    WorldGenSettings.withOverworld(
-                        dimensions,
-                        DimensionType.defaultDimensions(
-                            dimensions, biomes,
-                            registries.registryOrThrow(Registry.NOISE_GENERATOR_SETTINGS_REGISTRY),
-                            0
-                        ),
-                        new FlatLevelSource(FlatLevelGeneratorSettings.getDefault(biomes))
-                    )
-                ),
-                Lifecycle.stable()
-            ),
-            packRepo, Proxy.NO_PROXY, DataFixers.getDataFixer(), resources,
-            null, null, null, // Auth stuff, can be null since nobody will join anyway
-            LoggerChunkProgressListener::new
-        );
+        Collection<GameTestBatch> tests = groupTestsIntoBatches(config.filteredTests(), config.maxSimultaneous());
 
-        Collection<GameTestBatch> batches = groupTestsIntoBatches(config.getFilteredTests(), config.getMaxSimultaneous());
-        this.config = config;
-        this.testBatches = Lists.newArrayList(batches);
-        this.serverDir = serverDir;
-
-        if (batches.isEmpty()) {
+        if (tests.isEmpty()) {
             throw new IllegalArgumentException("No test batches were given!");
+        } else {
+            datapacks.reload();
+
+            WorldDataConfiguration worldConfig = new WorldDataConfiguration(
+                new DataPackConfig(
+                    new ArrayList<>(datapacks.getAvailableIds()), List.of()
+                ),
+                FeatureFlags.REGISTRY.allFlags()
+            );
+
+            WorldLoader.PackConfig packConfig = new WorldLoader.PackConfig(datapacks, worldConfig, false, true);
+            WorldLoader.InitConfig initConfig = new WorldLoader.InitConfig(packConfig, CommandSelection.DEDICATED, 4);
+
+            try {
+                LOGGER.debug("Starting resource loading");
+
+                Stopwatch stopwatch = Stopwatch.createStarted();
+                WorldStem worldStem = Util.blockUntilDone(
+                    executor -> WorldLoader.load(
+                        initConfig,
+                        ctx -> {
+                            Registry<LevelStem> levelStems = new MappedRegistry<>(Registries.LEVEL_STEM, Lifecycle.stable()).freeze();
+
+                            // Create a superflat world
+                            WorldDimensions.Complete dimensions = ctx.datapackWorldgen()
+                                                                     .registryOrThrow(Registries.WORLD_PRESET)
+                                                                     .getHolderOrThrow(WorldPresets.FLAT)
+                                                                     .value()
+                                                                     .createWorldDimensions()
+                                                                     .bake(levelStems);
+
+                            return new WorldLoader.DataLoadOutput<>(
+                                new PrimaryLevelData(
+                                    TEST_SETTINGS, TEST_OPTIONS,
+                                    dimensions.specialWorldProperty(),
+                                    dimensions.lifecycle()
+                                ),
+                                dimensions.dimensionsRegistryAccess()
+                            );
+                        },
+                        WorldStem::new,
+                        Util.backgroundExecutor(),
+                        executor
+                    )
+                ).get();
+                stopwatch.stop();
+
+                LOGGER.debug("Finished resource loading after {} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                return new DebugGameTestServer(thread, serverDir, lsa, datapacks, worldStem, tests, config);
+            } catch (Exception var11) {
+                LOGGER.warn("Failed to load vanilla datapack, bit oops", var11);
+                System.exit(-1);
+                throw new IllegalStateException();
+            }
         }
     }
 
@@ -127,8 +166,8 @@ public class DebugGameTestServer extends MinecraftServer {
         return byBatchName.entrySet().stream().flatMap(entry -> {
             String string = entry.getKey();
 
-            Consumer<ServerLevel> before = GameTestRegistry.getBeforeBatchFunction(string);
-            Consumer<ServerLevel> after = GameTestRegistry.getAfterBatchFunction(string);
+            Consumer<ServerLevel> before = DebugGameTestRegistry.getBeforeBatchFunction(string);
+            Consumer<ServerLevel> after = DebugGameTestRegistry.getAfterBatchFunction(string);
             MutableInt batchNr = new MutableInt();
             Collection<TestFunction> batchTests = entry.getValue();
 
@@ -141,95 +180,129 @@ public class DebugGameTestServer extends MinecraftServer {
         }).collect(ImmutableList.toImmutableList());
     }
 
+
+    private DebugGameTestServer(Thread thread, File serverDir, LevelStorageSource.LevelStorageAccess lsa, PackRepository datapacks, WorldStem stem, Collection<GameTestBatch> collection, RuntimeTestConfig config) {
+        super(thread, lsa, datapacks, stem, Proxy.NO_PROXY, DataFixers.getDataFixer(), TEST_SERVICES, LoggerChunkProgressListener::new);
+        this.testBatches = Lists.newArrayList(collection);
+        this.config = config;
+        this.serverDir = serverDir;
+    }
+
     @Override
     public boolean initServer() {
-        setPlayerList(new PlayerList(this, registryHolder, playerDataStorage, 1) {
+        setPlayerList(new PlayerList(this, registries(), playerDataStorage, 1) {
+            // N/A
         });
+
+
         loadLevel();
-        ServerLevel overworld = overworld();
-        overworld.setDefaultSpawnPos(config.getStart(), 0);
-        overworld.getLevelData().setRaining(false);
+
+        String levelName = config.dimension();
+        testLevel = getLevel(ResourceKey.create(Registries.DIMENSION, new ResourceLocation(levelName)));
+        if (testLevel == null) {
+            throw new RuntimeException("There is no such dimension named '" + levelName + "'");
+        }
+
+        testLevel.setDefaultSpawnPos(config.start(), 0);
+        testLevel.setWeatherParameters(20000000, 20000000, false, false);
+
+        LOGGER.info("Started JEDT game test server");
         return true;
     }
 
     @Override
-    public void tickServer(BooleanSupplier haveTime) {
-        super.tickServer(haveTime);
+    public void tickServer(BooleanSupplier booleanSupplier) {
+        super.tickServer(booleanSupplier);
 
-        ServerLevel overworld = overworld();
-        if (!haveTestsStarted())
-            startTests(overworld);
+        if (!haveTestsStarted()) {
+            startTests(testLevel);
+        }
 
-        if (overworld.getGameTime() % PROGRESS_REPORT_INTERVAL == 0) {
+        if (testLevel.getGameTime() % PROGRESS_INTERVAL == 0L) {
             LOGGER.info(testTracker.getProgressBar());
         }
 
         if (testTracker.isDone()) {
             halt(false);
             LOGGER.info(testTracker.getProgressBar());
+
             GlobalTestReporter.finish();
 
-            String header = String.format("========= %d GAME TESTS COMPLETE ======================", testTracker.getTotalCount());
-            LOGGER.info(header);
+            LOGGER.info("========= {} GAME TESTS COMPLETE ======================", this.testTracker.getTotalCount());
             if (testTracker.hasFailedRequired()) {
-                LOGGER.info("{} required tests failed {}", testTracker.getFailedRequiredCount(), Debug.UWU ? "qwq" : ":(");
+                LOGGER.info("{} required tests failed :(", testTracker.getFailedRequiredCount());
+
                 testTracker.getFailedRequired().forEach(
                     test -> LOGGER.info("   - {}", test.getTestName())
                 );
             } else {
-                LOGGER.info("All {} required tests passed {}", testTracker.getTotalCount(), Debug.UWU ? "^w^" : ":)");
+                LOGGER.info("All {} required tests passed :)", this.testTracker.getTotalCount());
             }
 
             if (testTracker.hasFailedOptional()) {
-                LOGGER.info("{} optional tests failed {}", testTracker.getFailedOptionalCount(), Debug.UWU ? ">w<" : ":|");
+                LOGGER.info("{} optional tests failed", testTracker.getFailedOptionalCount());
+
                 testTracker.getFailedOptional().forEach(
                     test -> LOGGER.info("   - {}", test.getTestName())
                 );
             }
 
-            LOGGER.info("=".repeat(header.length()));
+            LOGGER.info("====================================================");
         }
 
     }
 
     @Override
-    public SystemReport fillServerSystemReport(SystemReport systemReport) {
-        systemReport.setDetail("Type", "Game test server");
-        return systemReport;
+    public void waitUntilNextTick() {
+        runAllTasks();
+    }
+
+    @Override
+    public SystemReport fillServerSystemReport(SystemReport report) {
+        report.setDetail("Type", "JEDT Game test server");
+        return report;
     }
 
     @Override
     public void onServerExit() {
         super.onServerExit();
 
-        getRunningThread().interrupt();
-        GameTestEvents.TEST_SERVER_DONE.invoker().onTestServerDone(this);
-
-        config.getExportPath(serverDir.toPath()).ifPresent(path -> {
+        config.exportPath(serverDir.toPath()).ifPresent(path -> {
             LOGGER.info("Exporting test world as zip to " + path);
             GameTestCIUtil.exportTestWorldAsZip(this, path.toFile());
         });
 
-        // Halt runtime here, prevent the server from hanging, which it somehow does
-        Runtime.getRuntime().halt(testTracker.getFailedRequiredCount());
+        LOGGER.info("JEDT game test server shutting down");
+
+        GameTestEvents.TEST_SERVER_DONE.invoker().onTestServerDone(this);
+
+        assert testTracker != null;
+        System.exit(testTracker.getFailedRequiredCount());
     }
 
     @Override
-    public void onServerCrash(CrashReport crashReport) {
-        config.getExportPath(serverDir.toPath()).ifPresent(path -> {
+    public void onServerCrash(CrashReport report) {
+        super.onServerCrash(report);
+
+        config.exportPath(serverDir.toPath()).ifPresent(path -> {
             LOGGER.info("Exporting test world as zip to " + path);
             GameTestCIUtil.exportTestWorldAsZip(this, path.toFile());
         });
 
-        // Halt runtime here, prevent the server from hanging, which it somehow does
-        Runtime.getRuntime().halt(1);
+        LOGGER.error("JEDT game test server crashed\n{}", report.getFriendlyReport());
+        System.exit(1);
     }
 
     private void startTests(ServerLevel level) {
         Collection<GameTestInfo> tests = GameTestRunner.runTestBatches(
-            testBatches, config.getStart(), Rotation.NONE, level,
-            GameTestTicker.SINGLETON, 8
+            testBatches,
+            config.start(),
+            config.testRotation(),
+            level,
+            GameTestTicker.SINGLETON,
+            config.testsPerRow()
         );
+
         testTracker = new MultipleTestTracker(tests);
         LOGGER.info("{} tests are now running!", testTracker.getTotalCount());
     }
@@ -291,10 +364,5 @@ public class DebugGameTestServer extends MinecraftServer {
     @Override
     public boolean isSingleplayerOwner(GameProfile gameProfile) {
         return false;
-    }
-
-    @Override
-    public Optional<String> getModdedStatus() {
-        return Optional.empty();
     }
 }

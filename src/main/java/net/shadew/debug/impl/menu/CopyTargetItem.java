@@ -3,10 +3,9 @@ package net.shadew.debug.impl.menu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -18,11 +17,11 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Locale;
 
-import net.shadew.debug.api.menu.ActionOption;
+import net.shadew.debug.api.menu.ActionItem;
 import net.shadew.debug.api.menu.OptionSelectContext;
 
-public class CopyTargetOption extends ActionOption {
-    public CopyTargetOption(Component name) {
+public class CopyTargetItem extends ActionItem {
+    public CopyTargetItem(Component name) {
         super(name);
     }
 
@@ -45,36 +44,36 @@ public class CopyTargetOption extends ActionOption {
                         if (server) {
                             client.player.connection.getDebugQueryHandler().queryBlockEntityTag(pos, nbt -> {
                                 copyBlock(context, state, pos, nbt);
-                                context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_server_block"));
+                                context.spawnResponse(Component.translatable("debug.options.jedt.copy_targeted.response_server_block"));
                             });
                         } else {
                             BlockEntity be = client.level.getBlockEntity(pos);
-                            CompoundTag nbt = be != null ? be.save(new CompoundTag()) : null;
+                            CompoundTag nbt = be != null ? be.saveWithId() : null;
                             copyBlock(context, state, pos, nbt);
-                            context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_client_block"));
+                            context.spawnResponse(Component.translatable("debug.options.jedt.copy_targeted.response_client_block"));
                         }
                     } else {
                         copyBlock(context, state, pos, null);
-                        context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_client_state"));
+                        context.spawnResponse(Component.translatable("debug.options.jedt.copy_targeted.response_client_state"));
                     }
                 }
                 case ENTITY -> {
                     Entity entity = ((EntityHitResult) target).getEntity();
-                    ResourceLocation id = Registry.ENTITY_TYPE.getKey(entity.getType());
+                    ResourceLocation id = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
                     if (copyNbt) {
                         if (server) {
                             client.player.connection.getDebugQueryHandler().queryEntityTag(entity.getId(), nbt -> {
                                 copyEntity(context, id, entity.position(), nbt);
-                                context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_server_entity"));
+                                context.spawnResponse(Component.translatable("debug.options.jedt.copy_targeted.response_server_entity"));
                             });
                         } else {
                             CompoundTag nbt = entity.saveWithoutId(new CompoundTag());
                             copyEntity(context, id, entity.position(), nbt);
-                            context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_client_entity"));
+                            context.spawnResponse(Component.translatable("debug.options.jedt.copy_targeted.response_client_entity"));
                         }
                     } else {
                         copyEntity(context, id, entity.position(), null);
-                        context.spawnResponse(new TranslatableComponent("debug.options.jedt.copy_targeted.response_client_location"));
+                        context.spawnResponse(Component.translatable("debug.options.jedt.copy_targeted.response_client_location"));
                     }
                 }
             }

@@ -3,11 +3,11 @@ package net.shadew.debug.impl.menu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
-import net.shadew.debug.api.menu.BooleanOption;
+import net.shadew.debug.api.menu.BooleanItem;
 import net.shadew.debug.api.menu.OptionSelectContext;
 
-public class AdvancedTooltipsOption extends BooleanOption {
-    public AdvancedTooltipsOption(Component name) {
+public class AdvancedTooltipsItem extends BooleanItem {
+    public AdvancedTooltipsItem(Component name) {
         super(name);
     }
 

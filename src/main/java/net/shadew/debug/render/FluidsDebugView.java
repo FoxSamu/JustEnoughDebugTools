@@ -3,7 +3,6 @@ package net.shadew.debug.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix4f;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -15,6 +14,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 import net.shadew.debug.api.render.DebugView;
 
@@ -31,12 +32,11 @@ public record FluidsDebugView(Minecraft client) implements DebugView {
         assert client.player != null;
 
         BlockPos playerPos = client.player.blockPosition();
-        LevelAccessor world = client.player.level;
+        LevelAccessor world = client.player.level();
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(0, 1, 0, 0.75f);
-        RenderSystem.disableTexture();
         RenderSystem.lineWidth(1);
         VertexConsumer buff = buffSrc.getBuffer(RenderType.lines());
 
@@ -44,6 +44,7 @@ public record FluidsDebugView(Minecraft client) implements DebugView {
         pose.translate(-cameraX, -cameraY, -cameraZ);
 
         Matrix4f matrix = pose.last().pose();
+        Matrix3f nmatrix = pose.last().normal();
         for (BlockPos pos : BlockPos.betweenClosed(playerPos.offset(-8, -8, -8), playerPos.offset(8, 8, 8))) {
             FluidState fluid = world.getFluidState(pos);
             if (fluid.getAmount() <= 0) {
@@ -68,8 +69,8 @@ public record FluidsDebugView(Minecraft client) implements DebugView {
             float z2 = z1 + (float) flow.z * 0.8f;
 
             try { // TODO
-                buff.vertex(matrix, x1, y1, z1).color(0f, 0f, 1f, 1f).endVertex();
-                buff.vertex(matrix, x2, y2, z2).color(0f, 0f, 1f, 1f).endVertex();
+                buff.vertex(matrix, x1, y1, z1).color(0f, 0f, 1f, 1f).normal(nmatrix, 0, 1, 0).endVertex();
+                buff.vertex(matrix, x2, y2, z2).color(0f, 0f, 1f, 1f).normal(nmatrix, 0, 1, 0).endVertex();
             } catch (IllegalStateException ignored) {
             }
         }
@@ -81,10 +82,10 @@ public record FluidsDebugView(Minecraft client) implements DebugView {
             if (fluid.getAmount() <= 0) {
                 continue;
             }
-            DebugRenderer.renderFloatingText(String.valueOf(fluid.getAmount()), pos.getX() + 0.5, pos.getY() + fluid.getHeight(world, pos), pos.getZ() + 0.5, 0xFF000000);
+            DebugRenderer.renderFloatingText(pose, buffSrc, String.valueOf(fluid.getAmount()), pos.getX() + 0.5, pos.getY() + fluid.getHeight(world, pos), pos.getZ() + 0.5, 0xFF000000);
         }
 
-        RenderSystem.enableTexture();
+        RenderSystem.setShaderColor(1, 1, 1, 1);
         RenderSystem.disableBlend();
     }
 

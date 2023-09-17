@@ -5,18 +5,18 @@ import net.minecraft.network.chat.Component;
 /**
  * An abstract clickable option, of type {@link OptionType#ACTION}.
  *
- * @author Shadew
- * @see DebugOption
- * @see AbstractDebugOption
+ * @author Samū
+ * @see Item
+ * @see AbstractItem
  * @since 0.1
  */
-public abstract class ActionOption extends AbstractDebugOption {
+public abstract class ActionItem extends AbstractItem {
 
     /**
      * @param name The name to display on the option widget
      * @since 0.1
      */
-    public ActionOption(Component name) {
+    public ActionItem(Component name) {
         super(name);
     }
 

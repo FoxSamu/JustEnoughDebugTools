@@ -4,10 +4,10 @@ import net.minecraft.network.chat.Component;
 
 import java.util.function.Consumer;
 
-public class SimpleActionOption extends ActionOption {
+public class SimpleActionItem extends ActionItem {
     private final Consumer<OptionSelectContext> handler;
 
-    public SimpleActionOption(Component name, Consumer<OptionSelectContext> handler) {
+    public SimpleActionItem(Component name, Consumer<OptionSelectContext> handler) {
         super(name);
         this.handler = handler;
     }

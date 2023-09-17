@@ -1,11 +1,11 @@
 package net.shadew.debug.api.menu;
 
 /**
- * The types of debug menu options. This is returned by {@link DebugOption#getType()} to determine the appearance and
- * behavior of the option.
+ * The types of debug menu options. This is returned by {@link Item#getType()} to determine the appearance and behavior
+ * of the option.
  *
- * @author Shadew
- * @see DebugOption#getType()
+ * @author Samū
+ * @see Item#getType()
  * @since 0.1
  */
 public enum OptionType {

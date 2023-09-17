@@ -3,7 +3,6 @@ package net.shadew.debug;
 import com.google.gson.JsonParser;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.minecraft.server.MinecraftServer;
 
 import java.io.File;
@@ -18,7 +17,7 @@ public class DebugServer implements DedicatedServerModInitializer {
         if (!Debug.GAMETEST)
             Debug.loadServerTests();
 
-        EntrypointUtils.invoke(
+        Debug.entrypoint(
             "jedt:server", DebugServerInitializer.class,
             init -> init.onInitializeDebugServer(Debug.serverDebugStatus)
         );

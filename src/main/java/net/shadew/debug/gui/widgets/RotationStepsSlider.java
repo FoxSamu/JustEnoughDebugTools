@@ -1,14 +1,13 @@
 package net.shadew.debug.gui.widgets;
 
 import net.minecraft.client.gui.components.AbstractSliderButton;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 
 public class RotationStepsSlider extends AbstractSliderButton {
     private int rot;
 
     public RotationStepsSlider(int x, int y, int w, int h, double value) {
-        super(x, y, w, h, new TextComponent("SHADEWHASFAILEDTODOHISJOBBLAMEHIMNOW"), value);
+        super(x, y, w, h, Component.literal("SAMŪ HAS FAILED TO DO THEIR JOB BLAME THEM NOW"), value);
         applyValue();
         updateMessage();
     }
@@ -19,7 +18,7 @@ public class RotationStepsSlider extends AbstractSliderButton {
 
     @Override
     protected void updateMessage() {
-        setMessage(new TranslatableComponent("gui.jedt.test_query.rotation_steps", rot));
+        setMessage(Component.translatable("gui.jedt.test_query.rotation_steps", rot));
     }
 
     @Override

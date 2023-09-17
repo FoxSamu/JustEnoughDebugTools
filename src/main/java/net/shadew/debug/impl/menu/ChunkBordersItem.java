@@ -3,12 +3,12 @@ package net.shadew.debug.impl.menu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
-import net.shadew.debug.api.menu.BooleanOption;
+import net.shadew.debug.api.menu.BooleanItem;
 import net.shadew.debug.api.menu.OptionSelectContext;
 import net.shadew.debug.mixin.DebugRendererAccessor;
 
-public class ChunkBordersOption extends BooleanOption {
-    public ChunkBordersOption(Component name) {
+public class ChunkBordersItem extends BooleanItem {
+    public ChunkBordersItem(Component name) {
         super(name);
     }
 

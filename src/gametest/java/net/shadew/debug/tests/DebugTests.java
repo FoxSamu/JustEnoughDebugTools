@@ -1,19 +1,27 @@
 package net.shadew.debug.tests;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestGenerator;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.gametest.framework.TestFunction;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Cat;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.AnvilBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.FallingBlock;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DebugTests {
-    @GameTest
+    @GameTest(batch = "DebugTests")
     public static void succeed_in_50_ticks(GameTestHelper helper) {
         helper.runAfterDelay(50, helper::succeed);
     }
 
-    @GameTest(timeoutTicks = 300)
+    @GameTest(batch = "DebugTests", timeoutTicks = 300)
     public static void cat_walk_to_pos(GameTestHelper helper) {
         Cat cat = helper.spawnWithNoFreeWill(EntityType.CAT, 1, 2, 1);
 
@@ -22,11 +30,29 @@ public class DebugTests {
         helper.succeedWhen(() -> helper.assertEntityInstancePresent(cat, dest));
     }
 
-    @GameTest
-    public static void sand_fall(GameTestHelper helper) {
-        helper.setBlock(2, 6, 2, Blocks.SAND);
+    @GameTestGenerator
+    public static List<TestFunction> sand_fall() {
+        List<TestFunction> list = new ArrayList<>();
 
-        BlockPos dest = new BlockPos(2, 2, 2);
-        helper.succeedWhenBlockPresent(Blocks.SAND, dest);
+        for (Block block : BuiltInRegistries.BLOCK) {
+            if (block instanceof FallingBlock && !(block instanceof AnvilBlock)) {
+                list.add(new TestFunction(
+                    "DebugTests",
+                    "debugtests.fall_" + BuiltInRegistries.BLOCK.getKey(block).getPath(),
+                    "debugtests.sand_fall",
+                    100,
+                    0,
+                    true,
+                    helper -> {
+                        helper.setBlock(2, 6, 2, block);
+
+                        BlockPos dest = new BlockPos(2, 2, 2);
+                        helper.succeedWhenBlockPresent(block, dest);
+                    }
+                ));
+            }
+        }
+
+        return list;
     }
 }

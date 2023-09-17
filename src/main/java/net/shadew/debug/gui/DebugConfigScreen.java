@@ -2,11 +2,10 @@ package net.shadew.debug.gui;
 
 import com.mojang.blaze3d.platform.ClipboardManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL32;
@@ -16,7 +15,10 @@ import java.util.List;
 import java.util.function.IntConsumer;
 
 import net.shadew.debug.DebugClient;
-import net.shadew.debug.api.menu.*;
+import net.shadew.debug.api.menu.Item;
+import net.shadew.debug.api.menu.Menu;
+import net.shadew.debug.api.menu.OptionSelectContext;
+import net.shadew.debug.api.menu.OptionType;
 import net.shadew.debug.mixin.ScreenAccessor;
 
 public class DebugConfigScreen extends Screen {
@@ -30,7 +32,7 @@ public class DebugConfigScreen extends Screen {
     private boolean pauses;
 
     public DebugConfigScreen() {
-        super(new TranslatableComponent("jedt.options"));
+        super(Component.translatable("jedt.options"));
     }
 
     @Override
@@ -58,16 +60,16 @@ public class DebugConfigScreen extends Screen {
         descriptionBox.resizeScreen(width, height);
     }
 
-    private void openMenu(DebugMenu debugMenu, int index) {
-        ConfigMenu configMenu = new ConfigMenu(debugMenu.getHeader());
-        debugMenu.options()
-                 .filter(DebugOption::isVisible)
-                 .map(opt -> entryFromOption(opt, index))
-                 .forEach(configMenu::addEntry);
+    private void openMenu(Menu menu, int index) {
+        ConfigMenu configMenu = new ConfigMenu(menu.getHeader());
+        menu.options()
+            .filter(Item::isVisible)
+            .map(opt -> entryFromOption(opt, index))
+            .forEach(configMenu::addEntry);
         openMenu(configMenu, index);
     }
 
-    private ConfigMenu.Entry entryFromOption(DebugOption option, int index) {
+    private ConfigMenu.Entry entryFromOption(Item option, int index) {
         OptionType type = option.getType();
         IntConsumer handler = incr -> {
             SelectionContext context = new SelectionContext(incr, index + 1);
@@ -75,11 +77,16 @@ public class DebugConfigScreen extends Screen {
         };
 
         return switch (type) {
-            case ACTION -> new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
-            case MENU -> new ConfigMenu.MenuEntry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
-            case BOOLEAN -> new ConfigMenu.CheckableEntry(option, option.getName(), () -> handler.accept(0), option::hasCheck, option::getDisplayValue);
-            case NUMBER -> new ConfigMenu.SpinnerEntry(option, option.getName(), () -> handler.accept(Screen.hasShiftDown() ? -1 : 1), () -> handler.accept(1), () -> handler.accept(-1), option::getDisplayValue);
-            case EXTERNAL -> new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue, 4);
+            case ACTION ->
+                new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
+            case MENU ->
+                new ConfigMenu.MenuEntry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue);
+            case BOOLEAN ->
+                new ConfigMenu.CheckableEntry(option, option.getName(), () -> handler.accept(0), option::hasCheck, option::getDisplayValue);
+            case NUMBER ->
+                new ConfigMenu.SpinnerEntry(option, option.getName(), () -> handler.accept(Screen.hasShiftDown() ? -1 : 1), () -> handler.accept(1), () -> handler.accept(-1), option::getDisplayValue);
+            case EXTERNAL ->
+                new ConfigMenu.Entry(option, option.getName(), () -> handler.accept(0), option::getDisplayValue, 4);
         };
     }
 
@@ -153,13 +160,13 @@ public class DebugConfigScreen extends Screen {
         return menus.stream().mapToInt(menu -> menu.getDisplayableWidth(partialTicks)).sum();
     }
 
-    public void receiveRender(PoseStack pose, int mouseX, int mouseY, float tickProgress) {
+    public void receiveRender(GuiGraphics graphics, int mouseX, int mouseY, float tickProgress) {
         assert minecraft != null;
 
         RenderSystem.clear(GL32.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
 
-        pose.pushPose();
-        pose.translate(0, 0, 110);
+        graphics.pose().pushPose();
+        graphics.pose().translate(0, 0, 110);
         RenderSystem.disableDepthTest();
 
         int totalWidth = getTotalWidth(tickProgress);
@@ -173,14 +180,14 @@ public class DebugConfigScreen extends Screen {
                 int w = menu.getDisplayableWidth(tickProgress);
                 menu.setHeight(height);
                 menu.setLeftOffset(leftOffset);
-                if (menu.render(pose, mouseX, mouseY, tickProgress, descriptionBox)) {
+                if (menu.render(graphics, mouseX, mouseY, tickProgress, descriptionBox)) {
                     clearDescriptionBox = false;
                 }
                 leftOffset += w;
             }
         }
 
-        pose.translate(0, 0, 5);
+        graphics.pose().translate(0, 0, 5);
 
         for (HoverText txt : hoverTexts) {
             float alpha = txt.existTime / 30f;
@@ -188,23 +195,23 @@ public class DebugConfigScreen extends Screen {
 
             if ((color & 0xFC000000) != 0) {
                 int width = minecraft.font.width(txt.text);
-                drawHoverTextBackground(pose, txt.x - width / 2 - 5, txt.y - 9, txt.x + width / 2 + 5, txt.y + 9, alpha);
-                drawString(pose, minecraft.font, txt.text, txt.x - width / 2, txt.y - 4, color | 0xFFFFFF);
+                drawHoverTextBackground(graphics, txt.x - width / 2 - 5, txt.y - 9, txt.x + width / 2 + 5, txt.y + 9, alpha);
+                graphics.drawString(minecraft.font, txt.text, txt.x - width / 2, txt.y - 4, color | 0xFFFFFF);
             }
         }
 
-        pose.translate(0, 0, 5);
+        graphics.pose().translate(0, 0, 5);
         if (clearDescriptionBox) {
             descriptionBox.updateHovered(null, 0, 0, 0, 0, width, height);
         }
-        descriptionBox.render(pose, mouseX, mouseY, tickProgress);
+        descriptionBox.render(graphics, mouseX, mouseY, tickProgress);
 
         RenderSystem.enableDepthTest();
-        pose.popPose();
+        graphics.pose().popPose();
 
     }
 
-    private void drawHoverTextBackground(PoseStack matrices, int x1, int y1, int x2, int y2, float alpha) {
+    public static void drawHoverTextBackground(GuiGraphics graphics, int x1, int y1, int x2, int y2, float alpha) {
         float bgAlpha = alpha / 2;
         int color = (int) (Mth.clamp(alpha, 0, 1) * 255) << 24;
         int lighterColor = color | 0xAAAAAA;
@@ -213,19 +220,19 @@ public class DebugConfigScreen extends Screen {
 
         RenderSystem.enableBlend();
         // Inner fill (transparent black)
-        fill(matrices, x1 + 2, y1 + 2, x2 - 2, y2 - 2, bgColor);
+        graphics.fill(x1 + 2, y1 + 2, x2 - 2, y2 - 2, bgColor);
 
         // Inner border (grey)
-        fill(matrices, x1 + 1, y1 + 1, x2 - 1, y1 + 2, lighterColor);
-        fill(matrices, x1 + 1, y2 - 2, x2 - 1, y2 - 1, darkerColor);
-        fillGradient(matrices, x1 + 1, y1 + 2, x1 + 2, y2 - 2, lighterColor, darkerColor);
-        fillGradient(matrices, x2 - 2, y1 + 2, x2 - 1, y2 - 2, lighterColor, darkerColor);
+        graphics.fill(x1 + 1, y1 + 1, x2 - 1, y1 + 2, lighterColor);
+        graphics.fill(x1 + 1, y2 - 2, x2 - 1, y2 - 1, darkerColor);
+        graphics.fillGradient(x1 + 1, y1 + 2, x1 + 2, y2 - 2, lighterColor, darkerColor);
+        graphics.fillGradient(x2 - 2, y1 + 2, x2 - 1, y2 - 2, lighterColor, darkerColor);
 
         // Outer border (black)
-        fill(matrices, x1 + 1, y1, x2 - 1, y1 + 1, color);
-        fill(matrices, x1 + 1, y2 - 1, x2 - 1, y2, color);
-        fill(matrices, x1, y1 + 1, x1 + 1, y2 - 1, color);
-        fill(matrices, x2 - 1, y1 + 1, x2, y2 - 1, color);
+        graphics.fill(x1 + 1, y1, x2 - 1, y1 + 1, color);
+        graphics.fill(x1 + 1, y2 - 1, x2 - 1, y2, color);
+        graphics.fill(x1, y1 + 1, x1 + 1, y2 - 1, color);
+        graphics.fill(x2 - 1, y1 + 1, x2, y2 - 1, color);
     }
 
     private void closeLastInteractiveMenu() {
@@ -312,7 +319,7 @@ public class DebugConfigScreen extends Screen {
         }
 
         @Override
-        public void openMenu(DebugMenu menu) {
+        public void openMenu(Menu menu) {
             DebugConfigScreen.this.openMenu(menu, index);
         }
 

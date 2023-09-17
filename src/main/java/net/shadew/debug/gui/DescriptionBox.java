@@ -1,25 +1,24 @@
 package net.shadew.debug.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 
 import java.util.List;
 
-import net.shadew.debug.api.menu.DebugOption;
+import net.shadew.debug.api.menu.Item;
 
-public class DescriptionBox extends GuiComponent implements Widget {
+public class DescriptionBox implements Renderable {
     private static final int WIDTH = 200;
     private static final int MARGIN = 5;
     private static final int LINE_HEIGHT = 10;
 
-    private DebugOption hovered;
+    private Item hovered;
     private long hoverTimeStart;
     private boolean visible = false;
     private int x;
@@ -36,7 +35,7 @@ public class DescriptionBox extends GuiComponent implements Widget {
     private List<FormattedCharSequence> lines;
 
     @Override
-    public void render(PoseStack pose, int mouseX, int mouseY, float tickProgress) {
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float tickProgress) {
         if (visible) {
             Minecraft minecraft = Minecraft.getInstance();
             Font font = minecraft.font;
@@ -46,14 +45,14 @@ public class DescriptionBox extends GuiComponent implements Widget {
             int x2 = x1 + width;
             int y2 = y1 + height;
 
-            drawDescriptionBackground(pose, x1, y1, x2, y2, 1);
+            drawDescriptionBackground(graphics, x1, y1, x2, y2, 1);
 
             int px = x1 + MARGIN;
             int py = y1 + MARGIN;
 
             if (headerLines != null) {
                 for (FormattedCharSequence seq : headerLines) {
-                    font.drawShadow(pose, seq, px, py, 0xFFFF88);
+                    graphics.drawString(font, seq, px, py, 0xFFFF88, true);
                     py += LINE_HEIGHT;
                 }
 
@@ -64,7 +63,7 @@ public class DescriptionBox extends GuiComponent implements Widget {
 
             if (lines != null) {
                 for (FormattedCharSequence seq : lines) {
-                    font.drawShadow(pose, seq, px, py, 0xFFFFFF);
+                    graphics.drawString(font, seq, px, py, 0xFFFFFF, true);
                     py += LINE_HEIGHT;
                 }
             }
@@ -76,7 +75,7 @@ public class DescriptionBox extends GuiComponent implements Widget {
             update(hoverX, hoverY, hoverW, hoverH, w, h, header, desc);
     }
 
-    public void updateHovered(DebugOption hovered, int hoverX, int hoverY, int hoverW, int hoverH, int scrW, int scrH) {
+    public void updateHovered(Item hovered, int hoverX, int hoverY, int hoverW, int hoverH, int scrW, int scrH) {
         if (hovered != this.hovered) {
             this.visible = false;
             this.hoverTimeStart = System.currentTimeMillis();
@@ -137,7 +136,7 @@ public class DescriptionBox extends GuiComponent implements Widget {
         }
     }
 
-    private void drawDescriptionBackground(PoseStack pose, int x1, int y1, int x2, int y2, float alpha) {
+    private void drawDescriptionBackground(GuiGraphics graphics, int x1, int y1, int x2, int y2, float alpha) {
         float bgAlpha = alpha * 0.75f;
         int color = (int) (Mth.clamp(alpha, 0, 1) * 255) << 24;
         int lighterColor = color | 0xAAAAAA;
@@ -146,18 +145,18 @@ public class DescriptionBox extends GuiComponent implements Widget {
 
         RenderSystem.enableBlend();
         // Inner fill (transparent black)
-        fill(pose, x1 + 2, y1 + 2, x2 - 2, y2 - 2, bgColor);
+        graphics.fill(x1 + 2, y1 + 2, x2 - 2, y2 - 2, bgColor);
 
         // Inner border (grey)
-        fill(pose, x1 + 1, y1 + 1, x2 - 1, y1 + 2, lighterColor);
-        fill(pose, x1 + 1, y2 - 2, x2 - 1, y2 - 1, darkerColor);
-        fillGradient(pose, x1 + 1, y1 + 2, x1 + 2, y2 - 2, lighterColor, darkerColor);
-        fillGradient(pose, x2 - 2, y1 + 2, x2 - 1, y2 - 2, lighterColor, darkerColor);
+        graphics.fill(x1 + 1, y1 + 1, x2 - 1, y1 + 2, lighterColor);
+        graphics.fill(x1 + 1, y2 - 2, x2 - 1, y2 - 1, darkerColor);
+        graphics.fillGradient(x1 + 1, y1 + 2, x1 + 2, y2 - 2, lighterColor, darkerColor);
+        graphics.fillGradient(x2 - 2, y1 + 2, x2 - 1, y2 - 2, lighterColor, darkerColor);
 
         // Outer border (black)
-        fill(pose, x1 + 1, y1, x2 - 1, y1 + 1, color);
-        fill(pose, x1 + 1, y2 - 1, x2 - 1, y2, color);
-        fill(pose, x1, y1 + 1, x1 + 1, y2 - 1, color);
-        fill(pose, x2 - 1, y1 + 1, x2, y2 - 1, color);
+        graphics.fill(x1 + 1, y1, x2 - 1, y1 + 1, color);
+        graphics.fill(x1 + 1, y2 - 1, x2 - 1, y2, color);
+        graphics.fill(x1, y1 + 1, x1 + 1, y2 - 1, color);
+        graphics.fill(x2 - 1, y1 + 1, x2, y2 - 1, color);
     }
 }

@@ -6,13 +6,12 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.shadew.debug.api.gametest.GameTestEvents;
+import net.shadew.debug.test.TestEventsListener;
 
 @Mixin(GameTestInfo.class)
 public class GameTestInfoMixin {
     @Inject(method = "<init>", at = @At("RETURN"))
-    @SuppressWarnings("deprecation")
     private void constructorHook(CallbackInfo info) {
-        GameTestInfo.class.cast(this).addListener(GameTestEvents.TEST_LISTENER);
+        GameTestInfo.class.cast(this).addListener(TestEventsListener.INSTANCE);
     }
 }

@@ -61,7 +61,7 @@ public class PathfinderDebugView implements DebugView {
             for (Integer integer : paths.keySet()) {
                 Path path = paths.get(integer);
                 float range = pathRanges.get(integer);
-                renderPath(path, range, SHOW_OPEN_CLOSED, SHOW_GROUND_LABELS, cameraX, cameraY, cameraZ);
+                renderPath(pose, buffSrc, path, range, SHOW_OPEN_CLOSED, SHOW_GROUND_LABELS, cameraX, cameraY, cameraZ);
             }
 
             for (int id : creationTimes.keySet().toArray(new Integer[0])) {
@@ -78,23 +78,24 @@ public class PathfinderDebugView implements DebugView {
         return enabledConfig.booleanValue();
     }
 
-    public static void renderPath(Path path, float range, boolean renderOpenClosedSet, boolean renderDistance, double camX, double camY, double camZ) {
+    public static void renderPath(PoseStack pose, MultiBufferSource buffSrc, Path path, float range, boolean renderOpenClosedSet, boolean renderDistance, double camX, double camY, double camZ) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderColor(1, 1, 1, 1);
-        RenderSystem.disableTexture();
+        // RenderSystem.disableTexture();
         RenderSystem.lineWidth(6);
-        doRenderPath(path, range, renderOpenClosedSet, renderDistance, camX, camY, camZ);
-        RenderSystem.enableTexture();
+        doRenderPath(pose, buffSrc, path, range, renderOpenClosedSet, renderDistance, camX, camY, camZ);
+        // RenderSystem.enableTexture();
         RenderSystem.disableBlend();
     }
 
-    private static void doRenderPath(Path path, float range, boolean renderOpenClosedSet, boolean renderDistance, double camX, double camY, double camZ) {
+    private static void doRenderPath(PoseStack pose, MultiBufferSource buffSrc, Path path, float range, boolean renderOpenClosedSet, boolean renderDistance, double camX, double camY, double camZ) {
         renderPathLine(path, camX, camY, camZ);
         BlockPos blockPos = path.getTarget();
 
         if (distanceToCamera(blockPos, camX, camY, camZ) <= MAX_RENDER_DIST) {
             DebugRenderer.renderFilledBox(
+                pose, buffSrc,
                 new AABB(
                     blockPos.getX() + 0.25, blockPos.getY() + 0.25, blockPos.getZ() + 0.25,
                     blockPos.getX() + 0.75, blockPos.getY() + 0.75, blockPos.getZ() + 0.75
@@ -108,6 +109,7 @@ public class PathfinderDebugView implements DebugView {
                     float red = i == path.getNextNodeIndex() ? 1 : 0;
                     float blue = i == path.getNextNodeIndex() ? 0 : 1;
                     DebugRenderer.renderFilledBox(
+                        pose, buffSrc,
                         new AABB(
                             node.x + 0.5 - range, node.y + 0.01 * i, node.z + 0.5 - range,
                             node.x + 0.5 + range, node.y + 0.25 + 0.01 * i, node.z + 0.5 + range
@@ -122,6 +124,7 @@ public class PathfinderDebugView implements DebugView {
             for (Node node : path.getClosedSet()) {
                 if (distanceToCamera(node.asBlockPos(), camX, camY, camZ) <= MAX_RENDER_DIST) {
                     DebugRenderer.renderFilledBox(
+                        pose, buffSrc,
                         new AABB(
                             node.x + 0.5 - range / 2, node.y + 0.01, node.z + 0.5 - range / 2,
                             node.x + 0.5 + range / 2, node.y + 0.1, node.z + 0.5 + range / 2
@@ -130,6 +133,7 @@ public class PathfinderDebugView implements DebugView {
                     );
                     if (SHOW_OPEN_CLOSED_NODE_TYPE_WITH_TEXT) {
                         DebugRenderer.renderFloatingText(
+                            pose, buffSrc,
                             String.format("%s", node.type),
                             node.x + 0.5, node.y + 0.75, node.z + 0.5,
                             0xFFFFFFFF, TEXT_SCALE, true, 0, true
@@ -137,6 +141,7 @@ public class PathfinderDebugView implements DebugView {
                     }
                     if (SHOW_OPEN_CLOSED_COST_MALUS) {
                         DebugRenderer.renderFloatingText(
+                            pose, buffSrc,
                             String.format(Locale.ROOT, "%.2f", node.costMalus),
                             node.x + 0.5, node.y + 0.25, node.z + 0.5,
                             0xFFFFFFFF, TEXT_SCALE, true, 0, true
@@ -148,6 +153,7 @@ public class PathfinderDebugView implements DebugView {
             for (Node node : path.getOpenSet()) {
                 if (distanceToCamera(node.asBlockPos(), camX, camY, camZ) <= MAX_RENDER_DIST) {
                     DebugRenderer.renderFilledBox(
+                        pose, buffSrc,
                         new AABB(
                             node.x + 0.5 - range / 2, node.y + 0.01, node.z + 0.5 - range / 2.0,
                             node.x + 0.5 + range / 2, node.y + 0.1, node.z + 0.5 + range / 2.0
@@ -156,6 +162,7 @@ public class PathfinderDebugView implements DebugView {
                     );
                     if (SHOW_OPEN_CLOSED_NODE_TYPE_WITH_TEXT) {
                         DebugRenderer.renderFloatingText(
+                            pose, buffSrc,
                             String.format("%s", node.type),
                             node.x + 0.5, node.y + 0.75, node.z + 0.5,
                             0xFFFFFFFF, TEXT_SCALE, true, 0, true
@@ -163,6 +170,7 @@ public class PathfinderDebugView implements DebugView {
                     }
                     if (SHOW_OPEN_CLOSED_COST_MALUS) {
                         DebugRenderer.renderFloatingText(
+                            pose, buffSrc,
                             String.format(Locale.ROOT, "%.2f", node.costMalus),
                             node.x + 0.5, node.y + 0.25, node.z + 0.5,
                             0xFFFFFFFF, TEXT_SCALE, true, 0, true
@@ -177,11 +185,13 @@ public class PathfinderDebugView implements DebugView {
                 Node node = path.getNode(i);
                 if (distanceToCamera(node.asBlockPos(), camX, camY, camZ) <= MAX_RENDER_DIST) {
                     DebugRenderer.renderFloatingText(
+                        pose, buffSrc,
                         String.format("%s", node.type),
                         node.x + 0.5, node.y + 0.75, node.z + 0.5,
                         0xFFFFFFFF, TEXT_SCALE, true, 0, true
                     );
                     DebugRenderer.renderFloatingText(
+                        pose, buffSrc,
                         String.format(Locale.ROOT, "%.2f", node.costMalus),
                         node.x + 0.5, node.y + 0.25, node.z + 0.5,
                         0xFFFFFFFF, TEXT_SCALE, true, 0, true

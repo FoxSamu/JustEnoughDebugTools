@@ -5,12 +5,12 @@ import net.minecraft.network.chat.Component;
 /**
  * An abstract clickable option, of type {@link OptionType#EXTERNAL}.
  *
- * @author Shadew
- * @see DebugOption
- * @see AbstractDebugOption
+ * @author Samū
+ * @see Item
+ * @see AbstractItem
  * @since 0.2
  */
-public abstract class ExternalOption extends AbstractDebugOption {
+public abstract class ExternalOption extends AbstractItem {
 
     /**
      * @param name The name to display on the option widget

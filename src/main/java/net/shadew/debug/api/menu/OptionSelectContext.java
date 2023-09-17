@@ -3,14 +3,13 @@ package net.shadew.debug.api.menu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 
 /**
- * A context passed into {@link DebugOption#onClick}. This can be used to obtain information about how the option was
- * clicked, or to trigger certain responses such as opening a child menu.
+ * A context passed into {@link Item#onClick}. This can be used to obtain information about how the option was clicked,
+ * or to trigger certain responses such as opening a child menu.
  *
- * @author Shadew
- * @see DebugOption#onClick(OptionSelectContext)
+ * @author Samū
+ * @see Item#onClick(OptionSelectContext)
  * @since 0.1
  */
 public interface OptionSelectContext {
@@ -31,7 +30,7 @@ public interface OptionSelectContext {
      * @param menu The menu to open. Must not be null.
      * @since 0.1
      */
-    void openMenu(DebugMenu menu);
+    void openMenu(Menu menu);
 
     /**
      * Copies the given string to the clipboard.
@@ -73,7 +72,7 @@ public interface OptionSelectContext {
      * @since 0.1
      */
     default void spawnResponse(String key, Object... values) {
-        spawnResponse(new TranslatableComponent(key, values));
+        spawnResponse(Component.translatable(key, values));
     }
 
     /**
@@ -104,12 +103,14 @@ public interface OptionSelectContext {
      * @since 0.1
      */
     default void sendCommand(String command) {
-        if (!command.startsWith("/")) {
-            command = "/" + command;
+        // We'd generally allow a / in front of a command but the
+        // server doesn't like this
+        if (command.startsWith("/")) {
+            command = command.substring(1);
         }
         Minecraft client = minecraft();
         assert client.player != null;
-        client.player.chat(command);
+        client.player.connection.sendCommand(command);
     }
 
     // Number option context

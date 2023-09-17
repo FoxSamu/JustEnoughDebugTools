@@ -1,4 +1,4 @@
-package net.shadew.debug.api.menu;
+package net.shadew.debug.gui;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;

@@ -1,6 +1,5 @@
 package net.shadew.debug.gui.widgets;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -13,12 +12,12 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -28,11 +27,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.shadew.debug.gui.DebugConfigScreen;
 import net.shadew.debug.mixin.EditBoxAccessor;
 
 public class CompletableEditBox<T> extends EditBox {
     private static final SimpleCommandExceptionType EXTRA_INPUT = new SimpleCommandExceptionType(
-        new TranslatableComponent("misc.jedtextra_input_error")
+        Component.translatable("misc.jedt.extra_input_error")
     );
 
     private final SuggestionsLayer suggestionsLayer;
@@ -129,8 +129,8 @@ public class CompletableEditBox<T> extends EditBox {
     }
 
     @Override
-    public void setFocus(boolean focus) {
-        super.setFocus(focus);
+    public void setFocused(boolean focus) {
+        super.setFocused(focus);
         onFocusedChanged(focus);
     }
 
@@ -172,12 +172,11 @@ public class CompletableEditBox<T> extends EditBox {
         }
     }
 
-    @Override
     protected void onFocusedChanged(boolean focus) {
         if (focus) {
             attachAndUpdateSuggestions();
         } else {
-            suggestionsLayer.deattachFrom(this);
+            suggestionsLayer.detachFrom(this);
         }
     }
 
@@ -229,7 +228,7 @@ public class CompletableEditBox<T> extends EditBox {
     }
 
     @SuppressWarnings("RegExpUnnecessaryNonCapturingGroup")
-    public static class SuggestionsLayer extends GuiComponent implements GuiEventListener {
+    public static class SuggestionsLayer implements Renderable, GuiEventListener {
         private static final int MAX_ELEMENTS_VISIBLE = 10;
         private static final Pattern WORD_BOUNDARY = Pattern.compile("\\b(?:$)");
 
@@ -281,24 +280,27 @@ public class CompletableEditBox<T> extends EditBox {
             return out;
         }
 
-        public void render(PoseStack stack) {
+        public void render(GuiGraphics graphics) {
             if (isActive()) {
+                graphics.flush();
+
                 Font font = owner.font;
+
 
                 String error = owner.error;
 
                 if (error != null) {
                     List<String> errorLines = trimError(error, font);
                     int height = errorLines.size() * 10 + 2;
-                    int cy = up ? owner.y + owner.height : owner.y - height;
+                    int cy = up ? owner.getY() + owner.height : owner.getY() - height;
 
                     // Background
-                    fill(stack, x - 1, cy, x + width + 1, cy + height, 0x80000000);
+                    graphics.fill(x - 1, cy, x + width + 1, cy + height, 0xAA000000);
 
                     // Errors
                     int textY = cy + 1;
                     for (String errLn : errorLines) {
-                        drawString(stack, font, errLn, x, textY + 2, 0xFFFF5555);
+                        graphics.drawString(font, errLn, x, textY + 2, 0xFFFF5555);
 
                         textY += 10;
                     }
@@ -309,7 +311,11 @@ public class CompletableEditBox<T> extends EditBox {
                     int y = effY(height);
 
                     // Background
-                    fill(stack, x - 1, y, x + width + 1, y + height, 0x80000000);
+                    DebugConfigScreen.drawHoverTextBackground(
+                        graphics,
+                        x - 3, y, x + width + 3, y + height,
+                        1
+                    );
 
                     // Text
                     int textY = y + 1;
@@ -318,7 +324,7 @@ public class CompletableEditBox<T> extends EditBox {
                             String sugg = suggestions.get(i);
                             int color = i == selected ? 0xFFFFFF55 : 0xFFFFFFFF;
 
-                            drawString(stack, font, sugg, x + textX, textY + 2, color);
+                            graphics.drawString(font, sugg, x + textX, textY + 2, color);
                         }
 
                         textY += 12;
@@ -330,14 +336,16 @@ public class CompletableEditBox<T> extends EditBox {
                     for (int ix = 0; ix < width; ix++) {
                         if ((ix & 1) == 0) {
                             if (upperLine) {
-                                fill(stack, x + ix, y, x + ix + 1, y + 1, 0xFFFFFFFF);
+                                graphics.fill(x + ix, y, x + ix + 1, y + 1, 0xFFFFFFFF);
                             }
                             if (lowerLine) {
-                                fill(stack, x + ix, y + height - 1, x + ix + 1, y + height, 0xFFFFFFFF);
+                                graphics.fill(x + ix, y + height - 1, x + ix + 1, y + height, 0xFFFFFFFF);
                             }
                         }
                     }
                 }
+
+                graphics.flush();
             }
         }
 
@@ -452,20 +460,20 @@ public class CompletableEditBox<T> extends EditBox {
             this.owner = owner;
 
             up = false;
-            int cy = owner.y + owner.height;
+            int cy = owner.getY() + owner.height;
             int height = MAX_ELEMENTS_VISIBLE * 12 + 2;
             if (cy + height > parent.height) {
-                cy = owner.y;
+                cy = owner.getY();
                 up = true;
             }
 
-            x = owner.x + (owner.bordered ? 4 : 0);
+            x = owner.getX() + (owner.bordered ? 4 : 0);
             y = cy;
             width = owner.width - (owner.bordered ? 8 : 0);
             visible = true;
         }
 
-        public void deattachFrom(CompletableEditBox<?> owner) {
+        public void detachFrom(CompletableEditBox<?> owner) {
             if (this.owner == owner) {
                 visible = false;
                 owner.setSuggestion(null);
@@ -575,16 +583,26 @@ public class CompletableEditBox<T> extends EditBox {
         }
 
         @Override
-        public boolean changeFocus(boolean forward) {
-            return false;
-        }
-
-        @Override
         public boolean isMouseOver(double mx, double my) {
             int height = (end - start) * 12 + 2;
             double rx = mx - x;
             double ry = my - y;
             return visible && rx >= 0 && rx <= width && ry >= 0 && ry <= height;
+        }
+
+        @Override
+        public void setFocused(boolean focused) {
+
+        }
+
+        @Override
+        public boolean isFocused() {
+            return false;
+        }
+
+        @Override
+        public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tickDelta) {
+            render(guiGraphics);
         }
     }
 }

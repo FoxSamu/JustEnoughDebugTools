@@ -1,24 +1,22 @@
 package net.shadew.debug.api.menu;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.stream.Stream;
 
-import net.shadew.debug.api.DebugMenuInitializer;
+import net.shadew.debug.api.MenuInitializer;
 
 /**
- * A debug menu to show in the debug tools menu. Debug menus can be initialized via a {@link DebugMenuManager}
- * instance.
+ * A debug menu to show in the debug tools menu. Debug menus can be initialized via a {@link MenuManager} instance.
  *
- * @author Shadew
- * @see DebugMenuManager
- * @see DebugOption
- * @see DebugMenuInitializer
+ * @author Samū
+ * @see MenuManager
+ * @see Item
+ * @see MenuInitializer
  * @since 0.1
  */
-public interface DebugMenu {
+public interface Menu {
     /**
      * The identifier of the root menu: the first menu that appears when opening the debug menu screen.
      */
@@ -80,29 +78,29 @@ public interface DebugMenu {
     ResourceLocation GAMETEST = new ResourceLocation("jedt:gametest");
 
     /**
-     * Returns a {@link Component} to display in the header of this menu. By default, this is a {@link
-     * TranslatableComponent} with the translation key {@code debug.menu.[namespace].[menu name]}, with the namespace
-     * and menu name that were given in {@link DebugMenuManager#getMenu}.
+     * Returns a {@link Component} to display in the header of this menu. By default, this is a
+     * {@linkplain Component#translatable(String) translatable component} with the translation key
+     * {@code debug.menu.[namespace].[menu name]}, with the namespace and menu name that were given in
+     * {@link MenuManager#getMenu}.
      *
      * @since 0.1
      */
     Component getHeader();
 
     /**
-     * Returns a stream of all the {@linkplain DebugOption options} in this menu. Options can be added via {@link
-     * #addOption}.
+     * Returns a stream of all the {@linkplain Item options} in this menu. Options can be added via {@link #addOption}.
      *
-     * @see #addOption(DebugOption)
+     * @see #addOption(Item)
      * @since 0.1
      */
-    Stream<DebugOption> options();
+    Stream<Item> options();
 
     /**
-     * Adds a {@link DebugOption} to this menu.
+     * Adds a {@link Item} to this menu.
      *
      * @param option The option to add to this menu. Must not be null.
      * @see #options()
      * @since 0.1
      */
-    void addOption(DebugOption option);
+    void addOption(Item option);
 }

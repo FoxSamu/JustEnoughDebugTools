@@ -33,8 +33,8 @@ public class DebugPacketsMixin {
     // contents that Mojang removed.
 
     /**
-     * @reason ---
-     * @author Shadew
+     * @reason See {@link DebugPacketsMixin}s comment
+     * @author Samū
      */
     @Overwrite
     public static void sendPathFindingPacket(Level world, Mob mob, @Nullable Path path, float nodeReachProximity) {
@@ -59,8 +59,8 @@ public class DebugPacketsMixin {
     }
 
     /**
-     * @reason ---
-     * @author Shadew
+     * @reason See {@link DebugPacketsMixin}s comment
+     * @author Samū
      */
     @Overwrite
     public static void sendNeighborsUpdatePacket(Level world, BlockPos pos) {
@@ -84,8 +84,8 @@ public class DebugPacketsMixin {
     }
 
     /**
-     * @reason ---
-     * @author Shadew
+     * @reason See {@link DebugPacketsMixin}s comment
+     * @author Samū
      */
     @Overwrite
     public static void sendPoiPacketsForChunk(ServerLevel world, ChunkPos pos) {

@@ -1,48 +1,50 @@
 package net.shadew.debug.test;
 
+import com.mojang.logging.LogUtils;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import net.fabricmc.loader.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
-import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointServer;
+import net.fabricmc.loader.impl.game.minecraft.Hooks;
 import net.minecraft.CrashReport;
 import net.minecraft.DefaultUncaughtExceptionHandler;
 import net.minecraft.SharedConstants;
-import net.minecraft.Util;
 import net.minecraft.commands.Commands;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.gametest.framework.GameTestRegistry;
 import net.minecraft.gametest.framework.GlobalTestReporter;
 import net.minecraft.gametest.framework.StructureUtils;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.ServerResources;
+import net.minecraft.server.WorldLoader;
+import net.minecraft.server.dedicated.DedicatedServerSettings;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.FolderRepositorySource;
 import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.server.packs.repository.PackSource;
 import net.minecraft.server.packs.repository.ServerPacksSource;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.DataPackConfig;
+import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.level.storage.LevelSummary;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import net.shadew.debug.api.GameTestInitializer;
 import net.shadew.debug.util.PathUtil;
 
 public class GameTestServerStarter {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
+
 
     /*
      * Ok ok ok, this is a bit of a hacky unit of code that is performing the complete server startup when we want to
@@ -114,7 +116,12 @@ public class GameTestServerStarter {
             Bootstrap.validate();
             // Util.startTimerHackThread();
 
-            RegistryAccess.RegistryHolder registries = RegistryAccess.builtin();
+            // RegistryAccess.RegistryHolder registries = RegistryAccess.builtin();
+
+            Path path2 = Paths.get("server.properties");
+            DedicatedServerSettings settings = new DedicatedServerSettings(path2);
+            settings.forceSave();
+
 
             /*
              * Setup level
@@ -123,13 +130,18 @@ public class GameTestServerStarter {
             String levelName = Optional.ofNullable(options.valueOf(worldSpec)).orElse("gametestworld");
             LevelStorageSource storageSrc = LevelStorageSource.createDefault(universe.toPath());
             LevelStorageSource.LevelStorageAccess storageAcc = storageSrc.createAccess(levelName);
-            MinecraftServer.convertFromRegionFormatIfNeeded(storageAcc);
 
             LevelSummary summary = storageAcc.getSummary();
-            if (summary != null && summary.isIncompatibleWorldHeight()) {
-                LOGGER.info("Loading of old worlds is temporarily disabled.");
-                System.exit(1);
-                return;
+            if (summary != null) {
+                if (summary.requiresManualConversion()) {
+                    LOGGER.info("This world must be opened in an older version (like 1.6.4) to be safely converted");
+                    return;
+                }
+
+                if (!summary.isCompatible()) {
+                    LOGGER.info("This world was created by an incompatible version.");
+                    return;
+                }
             }
 
             /*
@@ -138,14 +150,16 @@ public class GameTestServerStarter {
 
             // This is the moment we start to load data packs, we must now load mods.
             // We don't have a game instance yet, we set this at the end.
-            EntrypointServer.start(null, null);
+            //
+            // Since we're completely skipping Fabric's hook, let's do it manually
+            Hooks.startServer(null, null);
 
             // Only call the game test entrypoints that are part of the selected mod
             List<EntrypointContainer<GameTestInitializer>> entrypointContainers
                 = FabricLoader.INSTANCE.getEntrypointContainers("debug:gametest", GameTestInitializer.class);
 
             for (EntrypointContainer<GameTestInitializer> ep : entrypointContainers) {
-                if (rtConfig.getModConfig(ep.getProvider().getMetadata().getId()) != null) {
+                if (rtConfig.modConfig(ep.getProvider().getMetadata().getId()) != null) {
                     ep.getEntrypoint().initializeGameTestServer();
                 }
             }
@@ -153,48 +167,21 @@ public class GameTestServerStarter {
             /*
              * Load datapacks
              */
-            Optional<Path> dataPacksPath = rtConfig.getDatapacksPath(universe.toPath());
+            Optional<Path> dataPacksPath = rtConfig.datapacksPath(universe.toPath());
 
-            DataPackConfig dataPacks = storageAcc.getDataPacks();
             PackRepository packRepository = dataPacksPath.map(
                 path -> new PackRepository(
-                    PackType.SERVER_DATA,
                     new ServerPacksSource(),
-                    new FolderRepositorySource(path.toFile(), PackSource.SERVER),
-                    new FolderRepositorySource(storageAcc.getLevelPath(LevelResource.DATAPACK_DIR).toFile(), PackSource.WORLD)
+                    new FolderRepositorySource(path, PackType.SERVER_DATA, PackSource.SERVER),
+                    new FolderRepositorySource(storageAcc.getLevelPath(LevelResource.DATAPACK_DIR), PackType.SERVER_DATA, PackSource.WORLD)
                 )
             ).orElseGet(
                 () -> new PackRepository(
-                    PackType.SERVER_DATA,
                     new ServerPacksSource(),
-                    new FolderRepositorySource(storageAcc.getLevelPath(LevelResource.DATAPACK_DIR).toFile(), PackSource.WORLD)
+                    new FolderRepositorySource(storageAcc.getLevelPath(LevelResource.DATAPACK_DIR), PackType.SERVER_DATA, PackSource.WORLD)
                 )
             );
-            MinecraftServer.configurePackRepository(
-                packRepository,
-                dataPacks == null ? DataPackConfig.DEFAULT : dataPacks,
-                false // Clean datapacks
-            );
-            CompletableFuture<ServerResources> resourcesFuture = ServerResources.loadResources(
-                packRepository.openAllSelected(),
-                registries,
-                Commands.CommandSelection.DEDICATED,
-                2, // Function permission level
-                Util.backgroundExecutor(),
-                Runnable::run
-            );
 
-            ServerResources resources;
-            try {
-                resources = resourcesFuture.get();
-            } catch (Exception exc) {
-                LOGGER.warn("Failed to load datapacks, can't proceed with test server load", exc);
-                packRepository.close();
-                System.exit(1);
-                return;
-            }
-
-            resources.updateGlobals();
 
             /*
              * Setup GameTest
@@ -205,18 +192,18 @@ public class GameTestServerStarter {
             Path serverDir = universe.toPath();
 
             // Set test structures directory
-            rtConfig.getTestStructuresPath(serverDir)
+            rtConfig.testStructuresPath(serverDir)
                     .ifPresent(path -> StructureUtils.testStructuresDir = path.toString());
 
             // Initiate TestReporter
             GlobalTestReporter.replaceWith(rtConfig.instantiateReporter(serverDir));
 
             // Register methods
-            String[] sets = rtConfig.getAllModSets()
+            String[] sets = rtConfig.allModSets()
                                     .filter(rtConfig::includesSet)
                                     .distinct()
                                     .toArray(String[]::new);
-            rtConfig.getAllTestMethods(sets)
+            rtConfig.allTestMethods(sets)
                     .forEach(GameTestRegistry::register);
 
             /*
@@ -224,33 +211,43 @@ public class GameTestServerStarter {
              */
             LOGGER.info("Starting JEDT game test server");
 
-            DebugGameTestServer server = MinecraftServer.spin(thread -> {
-                DebugGameTestServer serverInst = new DebugGameTestServer(
-                    thread,
-                    universe,
-                    storageAcc,
-                    packRepository,
-                    resources,
-                    rtConfig,
-                    registries
-                );
-
-                return serverInst;
-            });
+            DebugGameTestServer server = MinecraftServer.spin(thread -> DebugGameTestServer.create(
+                thread,
+                universe,
+                storageAcc,
+                packRepository,
+                rtConfig
+            ));
 
             // Set the game instance, we must do this here since we had no game instance at modloading time
-            // Yes this deprecated and not to be called anywhere else than from the dedicated server ...
+            // Yes this should not be called anywhere else than from the dedicated server ...
             //
-            // ... but we are the dedicated server now :D
-            FabricLoader.INSTANCE.setGameInstance(server);
+            // ... but we are the dedicated server now!
+            Hooks.setGameInstance(server);
 
             Thread shutdownThread = new Thread(() -> server.halt(true));
             shutdownThread.setName("Server Shutdown Thread");
             shutdownThread.setUncaughtExceptionHandler(new DefaultUncaughtExceptionHandler(LOGGER));
             Runtime.getRuntime().addShutdownHook(shutdownThread);
         } catch (Exception exc) {
-            LOGGER.fatal("Failed to start the test server", exc);
+            LOGGER.error(LogUtils.FATAL_MARKER, "Failed to start the minecraft server", exc);
             System.exit(1);
         }
+    }
+
+    private static WorldLoader.InitConfig loadOrCreateConfig(LevelStorageSource.LevelStorageAccess levelStorageAccess, boolean bl, PackRepository packRepository) {
+        WorldDataConfiguration worldDataConfiguration = levelStorageAccess.getDataConfiguration();
+        WorldDataConfiguration worldDataConfiguration2;
+        boolean bl2;
+        if (worldDataConfiguration != null) {
+            bl2 = false;
+            worldDataConfiguration2 = worldDataConfiguration;
+        } else {
+            bl2 = true;
+            worldDataConfiguration2 = new WorldDataConfiguration(DataPackConfig.DEFAULT, FeatureFlags.DEFAULT_FLAGS);
+        }
+
+        WorldLoader.PackConfig packConfig = new WorldLoader.PackConfig(packRepository, worldDataConfiguration2, bl, bl2);
+        return new WorldLoader.InitConfig(packConfig, Commands.CommandSelection.DEDICATED, 2);
     }
 }

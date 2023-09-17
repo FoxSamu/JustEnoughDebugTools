@@ -1,13 +1,17 @@
 package net.shadew.debug.gui.widgets;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.ComponentPath;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.narration.NarratedElementType;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.navigation.FocusNavigationEvent;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import org.jetbrains.annotations.Nullable;
 
 public class Label extends AbstractButton {
     public Label(int x, int y, int width, int height, Component text) {
@@ -18,29 +22,32 @@ public class Label extends AbstractButton {
     public void onPress() {
     }
 
-    @Override
-    public void renderButton(PoseStack matrix, int mouseX, int mouseY, float partialTicks) {
-        Minecraft mc = Minecraft.getInstance();
-        Font font = mc.font;
-        drawString(
-            matrix, font, getMessage(),
-            x,
-            y + (height - 8) / 2,
-            0xFFFFFF | Mth.ceil(alpha * 255) << 24
-        );
-    }
 
     @Override
-    public boolean changeFocus(boolean forward) {
-        return false;
+    public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+        Minecraft minecraft = Minecraft.getInstance();
+
+        RenderSystem.enableBlend();
+        RenderSystem.enableDepthTest();
+
+        graphics.setColor(1, 1, 1, 1);
+        int colour = 0xFFFFFF;
+        renderString(graphics, minecraft.font, colour | Mth.ceil(alpha * 255.0F) << 24);
+    }
+
+    @Nullable
+    @Override
+    public ComponentPath nextFocusPath(FocusNavigationEvent focusNavigationEvent) {
+        return null;
     }
 
     @Override
     public void playDownSound(SoundManager sndMgr) {
     }
 
+
     @Override
-    public void updateNarration(NarrationElementOutput narrationElementOutput) {
-        // TODO
+    protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+        narrationElementOutput.add(NarratedElementType.TITLE, getMessage());
     }
 }

@@ -5,7 +5,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.function.Consumer;
 
@@ -14,8 +13,8 @@ import net.shadew.debug.gui.widgets.CompletableEditBox;
 import net.shadew.debug.mixin.ScreenAccessor;
 
 public class TestExportPopupScreen extends VerticallyStackedScreen {
-    private static final TranslatableComponent TITLE = new TranslatableComponent("gui.jedt.test_query.export_function");
-    private static final TranslatableComponent EXPORT_BUTTON_TEXT = new TranslatableComponent("gui.jedt.test_query.export");
+    private static final Component TITLE = Component.translatable("gui.jedt.test_query.export_function");
+    private static final Component EXPORT_BUTTON_TEXT = Component.translatable("gui.jedt.test_query.export");
 
     private CompletableEditBox<?> editBox;
     private Button exportButton;
@@ -31,13 +30,13 @@ public class TestExportPopupScreen extends VerticallyStackedScreen {
         editBox = new CompletableEditBox<>(font, 0, 0, 200, 20, Component.nullToEmpty(""), suggestionsLayer, TestFunctionNameArgument.testFunctionNameArgument());
         addWidget(editBox);
 
-        exportButton = new Button(0, 0, 200, 20, EXPORT_BUTTON_TEXT, button -> {
+        exportButton = GuiUtil.button(0, 0, 200, 20, EXPORT_BUTTON_TEXT, button -> {
             onClose();
             handler.accept(editBox.getValue());
         });
         addWidget(exportButton);
 
-        cancelButton = new Button(0, 0, 200, 20, CommonComponents.GUI_CANCEL, button -> onClose());
+        cancelButton = GuiUtil.button(0, 0, 200, 20, CommonComponents.GUI_CANCEL, button -> onClose());
         addWidget(cancelButton);
     }
 
@@ -57,7 +56,7 @@ public class TestExportPopupScreen extends VerticallyStackedScreen {
         if (editBox != null) {
             ((ScreenAccessor) this).getChildren().add(suggestionsLayer);
             if (!initialized) {
-                editBox.setFocus(true);
+                editBox.setFocused(true);
                 setFocused(editBox);
             }
         }

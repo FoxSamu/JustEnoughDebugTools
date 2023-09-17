@@ -4,11 +4,16 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
+import net.fabricmc.loader.api.entrypoint.EntrypointContainer;
+import net.fabricmc.loader.impl.entrypoint.EntrypointUtils;
+import net.fabricmc.loader.impl.util.ExceptionUtil;
 import net.minecraft.gametest.framework.GameTestRegistry;
 import net.minecraft.gametest.framework.StructureUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.Collection;
+import java.util.function.Consumer;
 
 import net.shadew.debug.api.DebugInitializer;
 import net.shadew.debug.api.DebugStatusInitializer;
@@ -27,12 +32,12 @@ public class Debug implements ModInitializer {
     public static ServerDebugStatusImpl serverDebugStatus;
 
     static void loadClientTests() {
-        loadTests().getAllTestMethods("_runtime", "_client").forEach(GameTestRegistry::register);
+        loadTests().allTestMethods("_runtime", "_client").forEach(GameTestRegistry::register);
         LOGGER.info("Loaded {} tests", GameTestRegistry.getAllTestFunctions().size());
     }
 
     static void loadServerTests() {
-        loadTests().getAllTestMethods("_runtime", "_server").forEach(GameTestRegistry::register);
+        loadTests().allTestMethods("_runtime", "_server").forEach(GameTestRegistry::register);
         LOGGER.info("Loaded {} tests", GameTestRegistry.getAllTestFunctions().size());
     }
 
@@ -52,7 +57,6 @@ public class Debug implements ModInitializer {
     public void onInitialize() {
         // Enable GameTest
         // SharedConstants.IS_RUNNING_IN_IDE = true;
-
         // ... but that's a mixin now
 
         serverDebugStatus = createStatusInstance();
@@ -63,7 +67,7 @@ public class Debug implements ModInitializer {
                 StructureUtils.testStructuresDir = testStructuresDir;
         }
 
-        EntrypointUtils.invoke(
+        entrypoint(
             "jedt:main", DebugInitializer.class,
             init -> init.onInitializeDebug(serverDebugStatus)
         );
@@ -86,5 +90,30 @@ public class Debug implements ModInitializer {
         }
 
         return serverDebugStatusBuilder.build();
+    }
+
+    public static <T> void entrypoint(String name, Class<T> type, Consumer<? super T> invoker) {
+        RuntimeException exception = null;
+        Collection<EntrypointContainer<T>> entrypoints = FabricLoader.getInstance().getEntrypointContainers(name, type);
+
+        for (EntrypointContainer<T> container : entrypoints) {
+            try {
+                invoker.accept(container.getEntrypoint());
+            } catch (Throwable thr) {
+                exception = ExceptionUtil.gatherExceptions(
+                    thr, exception,
+                    exc -> new RuntimeException(
+                        "Could not execute entrypoint stage '%s' due to errors, provided by '%s'!".formatted(
+                            name, container.getProvider().getMetadata().getId()
+                        ),
+                        exc
+                    )
+                );
+            }
+        }
+
+        if (exception != null) {
+            throw exception;
+        }
     }
 }

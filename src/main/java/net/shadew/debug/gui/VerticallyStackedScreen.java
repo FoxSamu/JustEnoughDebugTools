@@ -1,7 +1,7 @@
 package net.shadew.debug.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.IntSupplier;
 
-import net.shadew.debug.api.menu.DebugMenuOverlayScreen;
 import net.shadew.debug.gui.widgets.CompletableEditBox;
 import net.shadew.debug.mixin.ScreenAccessor;
 
@@ -37,8 +36,8 @@ public abstract class VerticallyStackedScreen extends DebugMenuOverlayScreen {
     protected void addWidget(AbstractWidget widget) {
         addComponent(
             (centerX, y) -> {
-                widget.x = centerX - widget.getWidth() / 2;
-                widget.y = y;
+                widget.setX(centerX - widget.getWidth() / 2);
+                widget.setY(y);
             },
             widget::getHeight
         );
@@ -50,7 +49,7 @@ public abstract class VerticallyStackedScreen extends DebugMenuOverlayScreen {
     protected void init() {
         super.init();
 
-        ScreenAccessor accessor = ((ScreenAccessor) this);
+        ScreenAccessor accessor = (ScreenAccessor) this;
         accessor.getRenderables().addAll(widgets);
         accessor.getChildren().addAll(eventListeners);
 
@@ -94,13 +93,14 @@ public abstract class VerticallyStackedScreen extends DebugMenuOverlayScreen {
     }
 
     @Override
-    public void render(PoseStack pose, int mouseX, int mouseY, float tickProgress) {
-        renderBackground(pose);
-        super.render(pose, mouseX, mouseY, tickProgress);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float tickProgress) {
+        renderBackground(graphics);
+        super.render(graphics, mouseX, mouseY, tickProgress);
 
-        drawCenteredString(pose, font, getTitle(), width / 2, 20, 0xFFFFFFFF);
+        graphics.drawCenteredString(font, getTitle(), width / 2, 20, 0xFFFFFFFF);
 
-        suggestionsLayer.render(pose);
+        graphics.flush();
+        suggestionsLayer.render(graphics);
     }
 
     public interface Alignable {

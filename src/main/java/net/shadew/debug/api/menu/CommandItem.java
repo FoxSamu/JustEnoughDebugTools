@@ -3,29 +3,27 @@ package net.shadew.debug.api.menu;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 
-public class CommandOption extends ActionOption {
+public class CommandItem extends ActionItem {
     private final String command;
     private final Component response;
     private final Component commandDesc;
     private int closeOnClick;
 
-    public CommandOption(Component name, String command, Component response) {
+    public CommandItem(Component name, String command, Component response) {
         super(name);
         this.command = command;
         this.response = response;
-        this.commandDesc = new TextComponent((command.startsWith("/") ? "" : "/") + command).withStyle(ChatFormatting.AQUA);
+        this.commandDesc = Component.literal((command.startsWith("/") ? "" : "/") + command).withStyle(ChatFormatting.AQUA);
     }
 
-    public CommandOption(Component name, String command) {
+    public CommandItem(Component name, String command) {
         this(name, command, null);
     }
 
     @Override
     public Component getDescription() {
-        MutableComponent desc = new TextComponent("").append(commandDesc);
+        MutableComponent desc = Component.empty().append(commandDesc);
         Component superDesc = super.getDescription();
         if (superDesc != null) {
             desc.append("\n");
@@ -38,8 +36,8 @@ public class CommandOption extends ActionOption {
     public void onClick(OptionSelectContext context) {
         if (!context.hasPermissionLevel(2)) {
             context.spawnResponse(
-                new TranslatableComponent("debug.options.jedt.commands.no_permission")
-                    .withStyle(ChatFormatting.RED)
+                Component.translatable("debug.options.jedt.commands.no_permission")
+                         .withStyle(ChatFormatting.RED)
             );
             return;
         }
@@ -55,17 +53,17 @@ public class CommandOption extends ActionOption {
         }
     }
 
-    public CommandOption closeScreenOnClick() {
+    public CommandItem closeScreenOnClick() {
         closeOnClick = 2;
         return this;
     }
 
-    public CommandOption closeMenuOnClick() {
+    public CommandItem closeMenuOnClick() {
         closeOnClick = 1;
         return this;
     }
 
-    public CommandOption dontCloseOnClick() {
+    public CommandItem dontCloseOnClick() {
         closeOnClick = 0;
         return this;
     }

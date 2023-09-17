@@ -3,16 +3,16 @@ package net.shadew.debug.api.menu;
 import net.minecraft.network.chat.Component;
 
 /**
- * An abstract toggleable option, of type {@link OptionType#BOOLEAN}. A boolean option is managed by two methods: {@link
- * #get} and {@link #toggle}.
+ * An abstract toggleable option, of type {@link OptionType#BOOLEAN}. A boolean option is managed by two methods:
+ * {@link #get} and {@link #toggle}.
  *
- * @author Shadew
- * @see DebugOption
- * @see AbstractDebugOption
+ * @author Samū
+ * @see Item
+ * @see AbstractItem
  * @since 0.1
  */
-public abstract class BooleanOption extends AbstractDebugOption {
-    public BooleanOption(Component name) {
+public abstract class BooleanItem extends AbstractItem {
+    public BooleanItem(Component name) {
         super(name);
     }
 

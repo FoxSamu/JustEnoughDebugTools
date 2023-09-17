@@ -1,14 +1,13 @@
 package net.shadew.debug.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.arguments.ArgumentType;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.gametest.framework.TestClassNameArgument;
 import net.minecraft.gametest.framework.TestFunctionArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.function.BiConsumer;
 
@@ -17,7 +16,7 @@ import net.shadew.debug.gui.widgets.RotationStepsSlider;
 import net.shadew.debug.mixin.ScreenAccessor;
 
 public class TestQueryPopupScreen extends VerticallyStackedScreen {
-    private static final TranslatableComponent RUN_BUTTON_TEXT = new TranslatableComponent("gui.jedt.test_query.run");
+    private static final Component RUN_BUTTON_TEXT = Component.translatable("gui.jedt.test_query.run");
 
     private final Type type;
     private final BiConsumer<String, Integer> handler;
@@ -51,13 +50,13 @@ public class TestQueryPopupScreen extends VerticallyStackedScreen {
             addWidget(rotationSteps);
         }
 
-        runButton = new Button(0, 0, 200, 20, RUN_BUTTON_TEXT, button -> {
+        runButton = GuiUtil.button(0, 0, 200, 20, RUN_BUTTON_TEXT, button -> {
             onClose();
             handler.accept(editBox == null ? "" : editBox.getValue(), rotationSteps == null ? 0 : rotationSteps.getRotationSteps());
         });
         addWidget(runButton);
 
-        cancelButton = new Button(0, 0, 200, 20, RUN_BUTTON_TEXT, button -> onClose());
+        cancelButton = GuiUtil.button(0, 0, 200, 20, RUN_BUTTON_TEXT, button -> onClose());
         addWidget(cancelButton);
     }
 
@@ -80,7 +79,7 @@ public class TestQueryPopupScreen extends VerticallyStackedScreen {
         if (editBox != null) {
             ((ScreenAccessor) this).getChildren().add(suggestionsLayer);
             if (!initialized) {
-                editBox.setFocus(true);
+                editBox.setFocused(true);
                 setFocused(editBox);
             }
         }
@@ -89,15 +88,15 @@ public class TestQueryPopupScreen extends VerticallyStackedScreen {
     }
 
     @Override
-    public void render(PoseStack pose, int mouseX, int mouseY, float tickProgress) {
-        renderBackground(pose);
-        super.render(pose, mouseX, mouseY, tickProgress);
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float tickProgress) {
+        renderBackground(graphics);
+        super.render(graphics, mouseX, mouseY, tickProgress);
 
-        drawCenteredString(pose, font, getTitle(), width / 2, 20, 0xFFFFFFFF);
+        graphics.drawCenteredString(font, getTitle(), width / 2, 20, 0xFFFFFFFF);
 
         if (editBox != null) {
-            editBox.render(pose, mouseX, mouseY, tickProgress);
-            suggestionsLayer.render(pose);
+            editBox.render(graphics, mouseX, mouseY, tickProgress);
+            suggestionsLayer.render(graphics);
         }
     }
 
@@ -135,12 +134,12 @@ public class TestQueryPopupScreen extends VerticallyStackedScreen {
         BATCH("batch", null);
 
         final String name;
-        final TranslatableComponent translation;
+        final Component translation;
         final ArgumentType<?> argumentType;
 
         Type(String name, ArgumentType<?> argumentType) {
             this.name = name;
-            this.translation = new TranslatableComponent("gui.debug.test_query." + name);
+            this.translation = Component.translatable("gui.debug.test_query." + name);
             this.argumentType = argumentType;
         }
     }

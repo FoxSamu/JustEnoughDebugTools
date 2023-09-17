@@ -6,7 +6,6 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.loader.entrypoint.minecraft.hooks.EntrypointUtils;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import org.apache.logging.log4j.LogManager;
@@ -14,10 +13,10 @@ import org.apache.logging.log4j.Logger;
 import org.lwjgl.glfw.GLFW;
 
 import net.shadew.debug.api.DebugClientInitializer;
-import net.shadew.debug.api.DebugMenuInitializer;
-import net.shadew.debug.api.menu.DebugMenu;
+import net.shadew.debug.api.MenuInitializer;
+import net.shadew.debug.api.menu.Menu;
 import net.shadew.debug.gui.DebugConfigScreen;
-import net.shadew.debug.impl.menu.DebugMenuManagerImpl;
+import net.shadew.debug.impl.menu.MenuManagerImpl;
 import net.shadew.debug.impl.status.ServerDebugStatusImpl;
 import net.shadew.debug.render.DebugBuffers;
 
@@ -25,8 +24,8 @@ import net.shadew.debug.render.DebugBuffers;
 public class DebugClient implements ClientModInitializer {
     public static final Logger LOGGER = LogManager.getLogger();
 
-    public static final DebugMenuManagerImpl MENU_MANAGER = new DebugMenuManagerImpl();
-    public static final DebugMenu ROOT_MENU = MENU_MANAGER.getMenu(DebugMenu.ROOT);
+    public static final MenuManagerImpl MENU_MANAGER = new MenuManagerImpl();
+    public static final Menu ROOT_MENU = MENU_MANAGER.getMenu(Menu.ROOT);
 
     public static KeyMapping debugOptionsKey;
     public static boolean f6KeyDown = true;
@@ -43,7 +42,7 @@ public class DebugClient implements ClientModInitializer {
             Debug.loadClientTests();
 
         reloadMenus();
-        EntrypointUtils.invoke(
+        Debug.entrypoint(
             "jedt:client", DebugClientInitializer.class,
             init -> init.onInitializeDebugClient(serverDebugStatus)
         );
@@ -74,8 +73,8 @@ public class DebugClient implements ClientModInitializer {
         LOGGER.info("Reloading menus");
         MENU_MANAGER.clearAll();
         new DefaultMenuInitializer().onInitializeDebugMenu(ROOT_MENU, MENU_MANAGER, serverDebugStatus);
-        EntrypointUtils.invoke(
-            "jedt:menu", DebugMenuInitializer.class,
+        Debug.entrypoint(
+            "jedt:menu", MenuInitializer.class,
             init -> init.onInitializeDebugMenu(ROOT_MENU, MENU_MANAGER, serverDebugStatus)
         );
     }
